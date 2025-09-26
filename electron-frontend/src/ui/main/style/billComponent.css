@@ -1,0 +1,521 @@
+.pop-up-page {
+    position: fixed;
+    backdrop-filter: blur(1px);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+
+.bill-options-container,
+.discount-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--secondary-colors);
+    width: 25%;
+    height: 70%;
+    border-radius: var(--border-radius);
+    gap: 1rem;
+}
+
+
+
+.bill-options-header {
+    display: flex;
+    align-items: center;
+    width: 98%;
+    border-radius: var(--border-radius);
+    background-color: var(--main-bgs);
+    height: 7%;
+    gap: 2rem;
+
+}
+
+.bill-options-header button {
+    display: flex;
+    align-items: center;
+    height: 90%;
+    border: none;
+    border-radius: var(--border-radius);
+   
+}
+
+.bill-options-body-container,
+.discount-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 98%;
+    height: 80%;
+    background-color: var(--main-bgs);
+    border-radius: var(--border-radius)
+    
+}
+
+.bill-options-body-container button,
+.discount-body button {
+    display: flex;
+    align-items: center;
+    width: 90%;
+    background-color: white;
+    border: none;
+    height: 4rem;
+    gap: 2rem;
+    border-bottom: 0.5px solid rgba(204, 203, 203, 0.411);
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: background 0.4s, border 0.2s;
+}
+
+.bill-options-body-container button:hover,
+.discount-body button:hover {
+    background-color: var(--buttons-hover);
+}
+
+
+
+/* Style the order option pop up  */
+
+
+.order-options-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--secondary-colors);
+    width: 30%;
+    height: 70%;
+    border-radius: var(--border-radius);
+  
+}
+
+.order-options-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 98%;
+    background-color: var(--main-bgs);
+    height: 5vh;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
+    text-transform: capitalize;
+    border-radius: var(--border-radius);
+}
+
+.order-options {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--main-bgs);
+    align-items: center;
+    width: 98%;
+    height: fit-content;
+    border: 1px solid rgba(255, 255, 255, 0.856);
+    border-radius: 15px;
+}
+
+
+.order-options button {
+    display: flex;
+    align-items: center;
+    width: 90%;
+    background-color: white;
+    border: none;
+    height: 4rem;
+    gap: 2rem;
+    border-bottom: 0.5px solid rgba(204, 203, 203, 0.411);
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: background 0.4s, border 0.2s;
+}
+
+.order-options button:hover {
+    background-color: var(--buttons-hover);
+}
+
+
+.manage-quantity-container {
+    display: flex;
+    align-items: center;
+    background-color: var(--main-bgs);
+    width: 98%;
+    margin-top: 1rem;
+    border-radius: 15px;
+    height: fit-content;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.manage-quantity-container .quantity {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 60%;
+    height: 7rem;
+}
+
+.manage-quantity-container .quantity p {
+    font-size: large;
+    font-weight: bold;
+}
+
+.manage-quantity-container .quantity button {
+    background-color: var(--buttons-bg);
+    height: 3rem;
+    width: 3rem;
+    border: none;
+    color: var(--main-colors);
+    cursor: pointer;
+}
+
+
+.manage-quantity-container button:hover {
+    background-color: var(--buttons-hover);
+}
+
+
+.order-options-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: fit-content;
+    background-color: var(--main-bgs);
+    margin-top: 1vh;
+    height: 7vh;
+    width: 98%;
+    
+}
+
+.order-options-bottom button {
+    width: 49%;
+    height: 99%;
+    border: none;
+    background-color: var(--buttons-bg);
+    cursor: pointer;
+    transition: all 0.4s ease-out;
+
+
+}
+
+.order-options-bottom button:hover {
+    background-color: var(--buttons-hover);
+
+
+}
+
+
+
+/* style the numeric component */
+.keyboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(231, 235, 236, 0.233);
+    width: 34rem;
+    background-color: transparent;
+    border-radius: var(--border-radius);
+}
+
+.keyboard-container button:hover {
+    background-color: var(--buttons-hover);
+
+}
+
+.top-contents {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    background-color: rgba(249, 254, 255, 0.514);
+    color: white;
+    backdrop-filter: blur(2px);
+    width: 100%;
+    padding: 0.5rem;
+
+}
+
+.top-contents button {
+    display: flex;
+    align-items: center;
+    width: 20%;
+    height: 100%;
+    margin-right: 1rem;
+    background-color: transparent;
+    font-size: 17px;
+    border: none;
+    border-radius: var(--border-radius);
+    color: white;
+    cursor: pointer;
+}
+
+.top-contents h3 {
+    font-size: larger;
+    font-weight: bolder;
+    width: 40%;
+    text-align: center;
+
+}
+
+
+.number-input-container {
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(1px);
+    background-color:  rgba(249, 254, 255, 0.281);
+    border-radius: 5px;
+    width: 100%;
+    color: white;
+}
+.number-input-container input  {
+    background-color: inherit;
+    text-align: center;
+    width: 85%; height: 100%;
+    padding: 1rem;
+    font-size: 20px;
+    border: none;
+    color: white;
+    font-weight: 800;
+   
+}
+
+.number-input-container button {
+    background-color: inherit;
+    border: none;
+    width: 15%;
+    height: 100%;
+    color: white;
+    cursor: pointer;
+}
+
+
+.keyboard-contents {
+    display: flex;
+    flex-direction: row;
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+   
+}
+
+
+.number-buttons-container {
+    width: 85%;
+    height: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+
+.number-buttons-container button {
+    border-radius: 50%;
+    padding: 15px;
+    width: 100px;
+    height: 100px;
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(2px);
+    background-color: rgba(249, 254, 255, 0.466);
+    color: white;
+    border: none;
+}
+
+.save-container {
+    height: 30rem;
+    width: 15%;
+
+}
+
+.save-container button {
+    height: 100%; width: 100%;
+    backdrop-filter: blur(2px);
+    background-color: rgba(249, 254, 255, 0.466);
+    color: white;
+    border: none;
+}
+
+
+
+/* line mark container--------------------------------------------------------------------------- */
+.line-mark-container {
+    display: flex;
+    flex-direction: column;
+    width: 33rem;
+    height: 32rem;
+    background-color: transparent;
+    border: 1px solid white;
+    box-shadow: 1px 1px 2px 2px rgba(255, 255, 255, 0);
+    border-radius: var(--border-radius);
+}
+
+.line-mark-header-container {
+    width: 100%;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+}
+
+.line-mark-header-container button {
+    display: flex;
+    align-items: center;
+    height: 100%; width: 5rem;
+    background-color: inherit;
+    cursor: pointer;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+}
+
+.line-mark-header-container button:hover {
+    background-color: var(--buttons-hover);
+}
+
+
+
+.inputs-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 91%;
+    background-color: transparent;
+    padding: 1rem;
+
+}
+
+
+.inputs-container input {
+    width: 100%;
+    height: 5.5rem;
+    font-size: larger;
+    padding-left: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.37);
+    border-radius: var(--border-radius);
+}
+
+
+
+/* Condiments Style ----------------------------------------------------------------------------------*/
+
+
+.condiments-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(255, 251, 251);
+    background-color: transparent;
+    border-radius: 5px;
+    width: 55rem;
+    height: 40rem;
+    color: white;
+
+}
+
+
+
+.condiments-top-content {
+    display: flex;
+    flex-direction: row;
+    height: max-content;
+    justify-content: space-between;
+    width: 100%;
+    height: 10%;
+    border-bottom: 1px solid rgb(201, 200, 200);
+}
+    
+.condiments-top-content button {
+    display: flex;
+    width: 7rem;
+    height: 100%;
+    gap: 1rem;
+    align-items: center;
+    text-transform: capitalize;
+    background-color: transparent;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+}
+
+.condiments-top-content button:hover {
+    background-color: var(--buttons-hover);
+}
+
+
+.condiments-top-content h1 {
+    text-transform: capitalize;
+
+}
+
+.condiments-main-content {
+    display: flex;
+    flex-direction: row;
+    color: white;
+    height: 90%;
+
+}
+
+.chosen-condiments-container {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    height: 100%;
+    border-right: 2px solid rgb(255, 247, 247) ;
+
+}
+
+.chosen-condiments-top {
+    display: flex;
+    align-items: center;
+}
+
+.chosen-condiments-container button {
+    background-color: rgba(255, 255, 255, 0.281);
+    border-radius: var(--border-radius);
+    height: 4rem;
+    width: 50%;
+    border: none;
+
+}
+
+
+.delete-button  {
+    display: flex;
+    background-color: red;
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+    color: white;
+}
+
+
+
+.condiments-options-container {
+    display: flex;
+    flex-direction: row;
+    color: white;
+    flex-wrap: wrap ;
+    height: max-content;
+}
+
+.condiments-options-container button {
+    width: 7rem; height: 3.5rem;
+}
+
+
+
+
+

@@ -1,0 +1,141 @@
+.admin-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background-color: rgb(179, 173, 173);
+}
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    border: 1px solid gainsboro;
+    border-radius: 0.5rem;
+    width: 100%;
+    background-color: black;
+    color: white;
+    height: 7%; 
+    padding: 0.4rem;
+}
+
+.navigate-back-header {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 6rem;
+    border-radius: 0.6rem;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    font-size: large;
+    margin-right: 1rem;
+}
+.navigate-back-header:hover {
+    background-color: rgba(155, 152, 152, 0.356);
+}
+.admin-header h1 {
+    margin-left: 40%;
+}
+
+
+.admin-main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+}
+
+
+.forms {
+    display: flex;
+    flex-direction: column;
+}
+
+.food-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 35rem; height: 10rem;
+    background-color: rgb(206, 206, 206); color: black;
+    border: 1px solid white;
+    padding: 1rem;
+    border-radius: 1rem;
+    font-size: medium;
+    margin-bottom: 1rem;
+
+}
+
+.tables-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 35rem; height: 10rem;
+    background-color: rgb(196, 196, 196); color: rgb(7, 18, 32);
+    border: 1px solid white;
+    padding: 1rem;
+    border-radius: 1rem;
+    font-size: medium
+}
+
+.tables-form a, .food-form a{
+    text-align: center;
+    text-decoration: none;
+    width: 4.5rem; height: 2.5rem;
+    background-color: white; color: black;
+    padding-top: 0.5rem;
+    border-radius: 4px;
+    font-size: large;
+
+}
+
+
+.manage-users-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid white;
+    background-color: rgb(206, 217, 221);
+    color: black;
+    border-radius: 40%;
+    width: 30rem; height: 30rem;
+    padding: 1rem;
+    padding-top: 3rem;
+    margin-top: 1rem;
+
+}
+
+.add-user-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2rem;
+    width: 100%;
+    height: 4rem;
+}
+
+.add-user-container a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0.6rem;
+    text-align: center;
+    text-decoration: none;
+    color: black;
+    font-size: large;
+    background: rgb(255, 255, 255);
+    width: 50%;
+    border-radius: 0.7rem;
+}
+
+.add-user-container a:hover {
+    background-color: rgba(177, 177, 177, 0.692);
+    color : white;
+}
+
+
+

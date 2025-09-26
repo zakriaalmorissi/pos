@@ -1,0 +1,296 @@
+:root {
+    --main-bgs: rgb(253, 253, 253);
+    --accent-bgs: #ffffff;
+    --main-colors: #302f2f;
+    --secondary-colors: #dfe5e9;
+    --border-color: #888;
+    --buttons-hover: rgb(204, 204, 204);
+    --border-radius: 0.5rem;
+    --spacing: 0.5rem;
+    --occupied-bg: #11cf11;
+    --occupied-color: #fff;
+    --available-bg: #fff;
+    --available-color: #888;
+    --has-orders-bg: #cf5711;
+    --buttons-bg: rgb(241, 241, 241);
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--main-bgs);
+    height: 100vh;
+    width: 100vw;
+   
+}
+
+.header {
+    height: 7.5vh;
+    background-color: var(--secondary-colors);
+    padding: 0.2rem;
+    color: var(--main-colors);
+}
+
+.headerContents {
+    display: flex;
+    flex-direction: row;
+    color: var(--main-colors);
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: var(--border-radius);
+    padding: 0 var(--spacing);
+}
+
+.headerContents button {
+    background-color: var(--buttons-bg);
+    color: var(--main-colors);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.3rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.headerContents button:hover {
+    background-color: var(--buttons-hover);
+}
+
+.headerRightButtons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing);
+    width: 30%;
+    padding-right: 1rem;
+    height: 100%;
+}
+
+.menuContainer {
+    position: fixed;
+    display: flex;
+    top: 0;
+    left: 0;
+    flex-direction: column;
+    align-items: center;
+    width: 9%;
+    height: 100%;
+    margin: 0;
+    padding-top: 0.5rem;
+    margin-top: 0.3rem;
+    background-color: var(--secondary-colors);
+    z-index: 10;
+    /* Animation properties */
+}
+
+.menuButtonsContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.5rem;
+    gap: var(--spacing);
+}
+
+.menuButtonsContainer button {
+    width: 100%;
+    background-color: var(--buttons-bg);
+    color: var(--main-colors);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    height: 4rem;
+    cursor: pointer;
+    transition: background 0.2s, border 0.2s;
+}
+.menuButtonsContainer button:hover {
+    background-color: var(--buttons-hover);
+    border-color: var(--main-color);
+}
+
+
+
+
+.floorAndTableContainer {
+    background-color: var(--main-bgs);
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    height: 94vh;
+  
+}
+
+.floorContainer {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--secondary-colors);
+    color: var(--main-colors);
+    width: 8.5%;
+    min-width: 6vw;
+    max-width: 10%;
+    box-shadow: 1px 2px rgb(228, 228, 228);
+    overflow-y: hidden;
+}
+
+.floorContainer button {
+    height: 4rem;
+    width: 100%;
+    background-color: var(--buttons-bg);
+    color: var(--main-colors);
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.floorContainer button:hover {
+    background-color: var(--buttons-hover);
+
+}
+
+.devMainTables {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    width: 90%;
+    background-color: #e5e5e5;
+    margin: 1rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    overflow-y: scroll;
+}
+
+.singleTableContainer{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    width: 8rem;
+    max-width: 9rem;
+    margin: 1rem;
+    height: 7.5rem;
+    max-height: 8.5rem;
+    text-align: center;
+    text-transform: capitalize;
+    color: var(--main-color);
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    background-color: var(--accent-bg);
+    transition: background 0.3s, border 0.3s, color 0.2s;
+    cursor: pointer;
+}
+
+.singleTableContainer:hover {
+    border: 1.5px solid var(--main-color);
+    background-color: var(--button-hover);
+    color: var(--main-color);
+}
+
+.available {
+    background-color: var(--available-bg);
+    color: var(--available-color);
+}
+
+.occupied {
+    background-color: var(--occupied-bg);
+    color: var(--occupied-color);
+}
+
+.singleTableDevOccupied {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--occupied-bg);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    width: 6rem;
+    margin: 1rem;
+    height: 5rem;
+    text-align: center;
+    color: var(--occupied-color);
+    overflow: hidden;
+    border-radius: var(--border-radius);
+}
+
+.hasOrders {
+    background-color: var(--has-orders-bg);
+    color: var(--main-color);
+}
+
+
+
+
+/* --------------------------------------------------------------------------- */
+
+.fetchErrorContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: larger;
+    font-weight: bold;
+    gap: 2rem;
+    
+}
+
+
+.loadingSystemInfoIndicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    width: 100%;
+    height: 100%;
+}
+.loadingSystemInfoIndicator .indicator {
+    display: flex;
+    width: 20rem;
+    height: 5rem;
+    gap: 1rem;
+}
+
+
+.loadingSystemInfoIndicator .indicator span {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-top: 2rem;
+    animation: bounce 1.6s infinite ease-in-out;
+}
+
+
+.loadingSystemInfoIndicator .indicator span:nth-child(1) {
+    background-color: #99f599;
+    animation-delay: 0.5s;
+}
+
+ 
+.loadingSystemInfoIndicator .indicator span:nth-child(2) {
+    background-color: rgb(139, 255, 139);
+    animation-delay: 0.7s;
+}
+
+.loadingSystemInfoIndicator .indicator span:nth-child(3) {
+    background-color: #06d806;
+    animation-delay: 0.9s;
+    
+}
+
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+       
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+}
+
+
+
+
+

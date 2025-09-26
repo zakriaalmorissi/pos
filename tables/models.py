@@ -1,0 +1,113 @@
+from django.db import models
+from django.core.exceptions import ValidationError
+from decimal import Decimal
+from accounts.models import CustomUser
+
+# Create your models here.
+
+
+# orders models 
+# tables models 
+
+class Floor(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self)-> str :
+        return self.name
+
+class Table(models.Model):
+    floor = models.ForeignKey(Floor, on_delete=models.CASCADE, related_name="tables")
+    name = models.CharField(max_length=15, unique=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="user_tables", blank=True, null=True)
+    status = models.CharField(max_length=30, choices={
+        "available": "Available",
+        "occupied": "Occupied"},
+        default= "available"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    
+    
+    def __str__(self)-> str:
+        return f"order: {self.name}, floor: {self.floor.name}"
+    
+    
+    @property
+    def bill_ids(self) -> list:
+        return list(self.bills.values_list('id', flat=True))
+    
+    
+    @property
+    def counted_bills(self) -> int:
+        return self.bills.count()
+    
+    @property 
+    def has_orders(self) -> bool:
+        return self.bills.filter(orders__isnull=False).exists()
+
+
+
+class Bill(models.Model):
+    name = models.CharField(max_length=30, blank=True)
+    table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name="bills", blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
+    status = models.CharField(max_length=30, choices={
+        'pedning': "Pending",
+        'completed': "Completed",
+        'cancelled': "Cancelled"
+    },
+    default="pending"
+    )
+    customer_number = models.PositiveIntegerField(default=0)
+    discount = models.DecimalField(max_digits=10, default=00.00, decimal_places=2)
+    total = models.DecimalField(max_digits=11,default=00.0, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self) -> str:
+        return f"name: {self.name}, table: {self.table.name}"
+    
+
+    @property 
+    def service_charge(self) -> Decimal:
+        # Get orders that only have the status of (dine in) bcz no service charge for take out orders
+        orders = Order.objects.filter(bill= self.pk, status= "dine in")
+        price = Decimal("0")
+        for order in orders:
+            price += order.total_price
+        return  (price * 5 / 100)
+    
+    
+    @property 
+    def tax(self) ->  Decimal: 
+        return Decimal(self.total * 1 / 100)
+
+
+def validate_positive(value):
+       if value <= 0:
+           raise ValidationError("Quantity must be bigger than Zero")
+       
+
+class Order(models.Model):
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="orders")
+    food_name = models.CharField(max_length=240)
+    quantity = models.PositiveIntegerField(default=1, validators=[validate_positive])
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    condiments = models.CharField(max_length=240, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True) # what is the difference between auto_add_now and auto_now ?
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    status = models.CharField(max_length=30, choices=(("dine in", "Dine in"), ('take out', "Take out")), default="dine in")
+    is_ordered = models.BooleanField(default=False)
+
+    @property 
+    def total_price(self) -> Decimal: 
+        return (self.price * self.quantity)
+    
+
+    def __str__(self) -> str:
+        return f"name: {self.food_name}, condiments: {self.condiments}"
+ 
+ 
+           

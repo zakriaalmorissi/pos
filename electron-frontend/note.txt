@@ -1,0 +1,23 @@
+Problems still need to be solved 
+
+
+1. Bill: 
+    a. bill discount functionality
+    b. create  a new bill 
+    c. bill delete all
+    d. Bill viewer 
+
+
+2. Order: 
+    a. order fire later and release fire functionality 
+    b. making unique condiments and notes to the order 
+    c. 
+
+
+
+
+
+/// 1. Improve and fix bugs in admin inteface  -> products and tables creations
+/// 2. Table management -> provide more functionality
+/// 3. Sytstem statics and bill viewer
+/// 4. Bill out Interface 
