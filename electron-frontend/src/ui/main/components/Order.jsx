@@ -21,7 +21,7 @@ export function Orders() {
         if(!bill) return;
         console.log("Order fetch has been called");
         dispatch(fetchOrders(bill?.id));
-    }, [loading]);
+    }, [loading, bill?.id]);
 
 
     // Override the client name 
@@ -164,6 +164,12 @@ function OrderCard({value}) {
         )
         
     }
+    // I need to update the table in these cases:
+        // 1. when table has only one order, deleting it needs to update the table like hasOrders state
+            // ... and the bill gets empty , so we need to remove it from table 
+        // 2. when the table has more than one bill, if we delete all of the orders of a specific bill 
+
+        
 
 
 

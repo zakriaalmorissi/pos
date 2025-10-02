@@ -6,34 +6,34 @@ import style from './../style/table.module.css';
 import { TableProvider, TableContext} from "../provider/provider.jsx"
 import { Header } from "../components/Header.jsx";
 import { Bill } from "../components/Bill.jsx";
-import { StepBackIcon} from "lucide-react";
+import { AwardIcon, StepBackIcon} from "lucide-react";
 import { ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../components/components.jsx";
-import { Provider, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import BillForm from "../components/billForm.jsx";
 import { createBill, fetchBill, clearBill} from "../../dataProvider/billProvider/billSilce.js";
 import { clearOrders } from "../../dataProvider/orderProvider/orderSlice.js";
 import { LoadingSpinner } from "../components/components.jsx";
-import { fetchTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
+import { cleanTable, updateTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
+
+
+
 
 
 export default function SingleTable() {
     const { id } = useParams();
-    const tableId = parseInt(id, 10);
-    const { tables } = useSelector((s) => s.tables);
+    const tableId = Number(id);
+    const {tables} = useSelector(s => s.tables);
     const [table, setTable] = useState(null);
+
+    useEffect(()=> {
+        const foundTable = tables.find(t=> t.id === tableId);
+        console.log(foundTable);
+        setTable(foundTable || null);
         
-
-  useEffect(() => {
-    if (tables && tables.length > 0) {
-      const foundTable = tables.find((t) => t.id === tableId);
-      setTable(foundTable || null);
-      console.log("Found table:", foundTable);
+    }, [id]);
+    if (!table) {
+        return <LoadingSpinner/>
     }
-  }, [tableId, tables]); // depend on both
-
-  if (!table) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <TableProvider>
@@ -97,7 +97,7 @@ function DisplayTable ({table}) {
         if (table.billIds.length === 1) {
             dispatch(fetchBill(table.billIds.at(0)))
         }
-    }, [])
+    }, [table])
 
 
     useEffect (()=> {
@@ -121,8 +121,6 @@ function DisplayTable ({table}) {
 
 
     const releaseTable =  async () => {
-        dispatch(clearBill());
-        dispatch(clearOrders());
         if (!isOccupiedRef.current) return; // if table is not occupied, never try to release it 
         const URL = `${url}api/release_table/${table.id}/`;
         await postData(URL, {
@@ -140,7 +138,8 @@ function DisplayTable ({table}) {
     useEffect(()=> {
         const handleBeforeUnload =  (event) => {
             releaseTable();
-            event.returnValue = '';// why do we assign this to empty string ?
+            restStates()
+            event.returnValue = '';
         }
         // these are not gonna be called unless the event listener has been called
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -148,6 +147,7 @@ function DisplayTable ({table}) {
 
         return () => {
             releaseTable()
+            restStates();
             window.removeEventListener('pagehide', handleBeforeUnload);
             window.removeEventListener('beforeunload', handleBeforeUnload);
 
@@ -159,22 +159,34 @@ function DisplayTable ({table}) {
     // have more than one bill -> render the select component -> select one bill --> feed the provider 
     const handleCompleteAction =  async() => {
         await releaseTable();
+        restStates();
         navigate('/home');
     };
+
+    const restStates = () => {
+        dispatch(clearBill());
+        dispatch(clearOrders());
+    }
 
 
     const createTableBill = (data) => {
         data = {...data, table: table.id};
         dispatch(createBill(data));
         setViewsModel({...viewsModel, createBill: false});
-
     }
+
     const selectTableBill = (id) => {
         // Feed the provider with the selected bill  
         dispatch(fetchBill(id));
         setViewsModel({...viewsModel, selectBill: false})
     }
 
+
+    // 
+    const createNewBill = () => {
+        setViewsModel(prev => ({...prev, createBill: true}))
+
+    }
     const views = {
         billForm: <BillForm onSubmit={createTableBill}/>,
         selectedBill: <BillSelectionView bills={table.billIds} selectedBill={selectTableBill} />
@@ -204,7 +216,8 @@ function DisplayTable ({table}) {
                     <Bill 
                         table={table} // 
                         handleCompleteAction={handleCompleteAction}
-                        orderStatus={orderStatus}             
+                        orderStatus={orderStatus} 
+                        creatNewBill={createNewBill}            
                     />
                     {
                 
@@ -219,9 +232,11 @@ function DisplayTable ({table}) {
 
 
 function BillSelectionView ({bills, selectedBill}) {
+    // i really need to display more data about the each bill .. like name, totall price and number of orders
+    
     return <div className={style.chooseBillContainer}>
             <div className={style.topChooseBillContainer}>
-                <Link to={"/"}>
+                <Link to={"/home"}>
                     <StepBackIcon size={40}/>
                     <p>Back</p>
                 </Link>
@@ -240,6 +255,7 @@ function BillSelectionView ({bills, selectedBill}) {
 
 
 }
+
 
 
 

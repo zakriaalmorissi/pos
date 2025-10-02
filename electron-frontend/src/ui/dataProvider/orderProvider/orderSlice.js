@@ -159,13 +159,12 @@ const orderSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchOrders.pending, (state)=> {
+            state.orders = [];
             state.orderError = null;
             state.orderLoading = true;
+         
         })
         .addCase(fetchOrders.fulfilled, (state, action)=> {
-          if (state.orders.length !== 0) {
-            return;
-          }
             state.orders = action.payload.data.map((order)=> {
               return cleanOrder(order);
             });

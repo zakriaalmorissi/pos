@@ -18,15 +18,11 @@ import { ProcessingIndicator, TimeoutErrorMessageIndicator } from './components/
 import { fetchSystem } from './dataProvider/systemProvider/system.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { cleanTable, fetchTables, updateTables } from './dataProvider/tablesProvider/tablesProvider.js';
-import { fetchMenu } from './dataProvider/menuProvider/menuProvider.js';
 
 // 1. Tables
 // 2. Menu
 // 3. Take out Bills 
 // 4. 
-
-// ---------------------- DisplayHome (top-level) ----------------------
-
 
 // ---------------------- Home (main UI) ----------------------
 export function Home() {
@@ -47,10 +43,6 @@ export function Home() {
 
   // Get the floors data
   useEffect(() => {
-    if (tables.length === 0) {
-      dispatch(fetchTables());
-    }
-
     fetchData(`${url}api/floors/`, {
       getData: (response) => {
         setFloors(response.data);
@@ -82,7 +74,7 @@ export function Home() {
     } else {
       setCurrentTables(tables.filter((table) => table.floorId === 1));
     }
-  }, [floors, tables]);
+  }, [floors, tables, dispatch]);
 
   const swichTransFormBillMode = () => {
     setFirstPressedTable(null);
@@ -316,36 +308,47 @@ function Table({ table, isNavigate, onClicked }) {
   };
 
   const className = `
-        ${style.singleTableContainer}
-        ${updatedTable.hasOrders && updatedTable.status === 'occupied' ? style.singleTableDevOccupied :
+        ${style.singleTable}
+        ${updatedTable.status === 'occupied' ? style["occupied"] :
     updatedTable.hasOrders ? style.hasOrders : style[updatedTable.status]}
     `;
 
   if (updatedTable.status === 'occupied') {
-    return <div className={className}>{table.name}</div>;
+    return <div className={style.singleTableContainer}> <div className={className}>{table.name}</div> </div>;
   }
 
   if (isNavigate) {
     return (
+    <div className={style.singleTableContainer}>
+      { table.countedBills > 1 && <p className={style.countedBills}>{table.countedBills}</p>}
       <Link className={className} to={`/home/singleTable/${table.id}`}>
-        {table.name}
+          {table.name}
       </Link>
+
+    </div>
+     
     );
   }
 
   // transfer / select mode
   if (isClicked && updatedTable.hasOrders) {
     return (
-      <button className={className} style={{ backgroundColor: 'green' }} onClick={() => handleOnClick(table.id)}>
-        {table.name}
-      </button>
+     <div className={style.singleTableContainer}>
+        <button className={className} style={{ backgroundColor: 'red' }} onClick={() => handleOnClick(table.id)}>
+          {table.name}
+        </button>
+     </div> 
+   
     );
   }
 
   return (
-    <button className={className} onClick={() => handleOnClick(table.id)}>
+    <div className={style.singleTableContainer}>
+      <button className={className} onClick={() => handleOnClick(table.id)}>
       {table.name}
-    </button>
+      </button>
+    </div>
+  
   );
 }
 

@@ -1,10 +1,10 @@
 import {useState } from "react";
 import {CircleDollarSignIcon,MenuIcon, Save, ShoppingCart, SquareCheckBig, } from "lucide-react";
 
-import { postData, updateData } from "../../../network/api.ts";
+import {  updateData } from "../../../network/api.ts";
 import { url } from "../../../network/constants.js";
 import style from './../style/table.module.css';
-import { DiscountComponent, LoadingSpinner, BillOptions } from "./components.jsx";
+import { DiscountComponent, BillOptions } from "./components.jsx";
 import { Menu } from "./Menu.jsx";
 import { Orders } from "./Order.jsx";;
 import { ProcessingIndicator, TimeoutErrorMessageIndicator} from '../../components/components.jsx';
@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createBill, fetchBill } from "../../dataProvider/billProvider/billSilce.js";
 
 import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
+import { updateTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
 
 
 
@@ -23,6 +24,7 @@ import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
     handleCompleteAction,
     orderStatus,
     handlePaymentAction,
+    creatNewBill
  }) {
     // need to get bill updated 
     const dispatch = useDispatch();
@@ -54,13 +56,6 @@ import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
     }
 
 
-    // Handle bill form submittion
-    async  function handleBillCreation (formData) {
-        let data = formData;
-        data.table = table.id;
-        dispatch(createBill(data));
-    }
-
 
     // Perform the order action
     const handleOrder = async (order) => {
@@ -68,13 +63,32 @@ import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
         let newData = {table: table?.id, bill: bill?.id, status: status}
         order = {...order, ...newData};
         dispatch(createOrder({data: order, billId: bill?.id}));
-        // Update the table status
-        console.log(table);
-        
+        if (table.billIds.length === 0) {
+            updateTable();
+        } else {
+            /// Find the bill id in the table's bill ids
+            const Id = table.billIds.find(id => id ===  bill?.id) || null;
+            if (!Id) {
+                updateTable();
+            }
+
+        } 
     }
-    const creatNewBill  = () => {
-    
+
+    const updateTable = () => {
+        // Update the bill list in the table
+        const billIds = [ ...(table.billIds || [])]
+        billIds.push(bill?.id);
+        // Update the counted bills 
+        const countedBills = billIds.length;
+        // Update the table state 
+        const hasOrders = table.hasOrders || true;
+
+        const newTable = {...table, billIds: billIds, hasOrders: hasOrders, countedBills: countedBills};
+        dispatch(updateTables(newTable));
     }
+
+
 
     // Bill discount action 
     const handleBillDiscount = async (value) => {
@@ -144,6 +158,11 @@ import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
 
  function BillLeftSide ({handleBillDiscount, creatNewBill}) {
     const [popUpView, setActivePopUpView] = useState("");
+    
+    const onCreateNewBill = () => {
+        setActivePopUpView("");
+        creatNewBill();
+    }
 
 
     // Views 
@@ -156,7 +175,7 @@ import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
         ),
         "menu-options": (
             <BillOptions 
-                createBill={creatNewBill}
+                createBill={onCreateNewBill}
                 onBack={()=> setActivePopUpView("")}
                 billDiscount={()=> setActivePopUpView("discount")}
             

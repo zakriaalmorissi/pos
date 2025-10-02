@@ -11,7 +11,7 @@
     --occupied-color: #fff;
     --available-bg: #fff;
     --available-color: #888;
-    --has-orders-bg: #cf5711;
+    --has-orders-bg: skyblue;
     --buttons-bg: rgb(241, 241, 241);
 }
 
@@ -157,16 +157,38 @@
     overflow-y: scroll;
 }
 
-.singleTableContainer{
+
+.singleTableContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 8rem;
+    max-width: 9rem;
+    height: 7.5rem;
+    max-height: 8.5rem;
+    margin: 1rem;
+
+}
+.singleTableContainer .countedBills {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 90%;
+    background-color: #ff4516;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+
+}
+
+.singleTable{
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    width: 8rem;
-    max-width: 9rem;
-    margin: 1rem;
-    height: 7.5rem;
-    max-height: 8.5rem;
+    width: 100%;
+    height: 90%;
     text-align: center;
     text-transform: capitalize;
     color: var(--main-color);
@@ -177,7 +199,7 @@
     cursor: pointer;
 }
 
-.singleTableContainer:hover {
+.singleTable:hover {
     border: 1.5px solid var(--main-color);
     background-color: var(--button-hover);
     color: var(--main-color);
@@ -191,22 +213,6 @@
 .occupied {
     background-color: var(--occupied-bg);
     color: var(--occupied-color);
-}
-
-.singleTableDevOccupied {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--occupied-bg);
-    text-decoration: none;
-    border: 1px solid var(--border-color);
-    width: 6rem;
-    margin: 1rem;
-    height: 5rem;
-    text-align: center;
-    color: var(--occupied-color);
-    overflow: hidden;
-    border-radius: var(--border-radius);
 }
 
 .hasOrders {

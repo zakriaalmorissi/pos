@@ -22,7 +22,7 @@ export const cleanTable = (table) => {
     name: table.name,
     floorId: table.floor,
     status: table.status,
-    countedBills: table.counted_bills,
+    countedBills: table.counted_bills ,
     billIds: table.bill_ids || [],
     hasOrders: table.has_orders
   }

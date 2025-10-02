@@ -185,7 +185,9 @@ def send_table_update(table: Table) -> None:
                 "floor": table.floor.id,
                 "name": table.name,
                 "status": table.status, 
-                "has_orders": table.has_orders
+                "has_orders": table.has_orders,
+                "bill_ids": table.bill_ids,
+                "counted_bills": table.counted_bills
             }
         }
     )
