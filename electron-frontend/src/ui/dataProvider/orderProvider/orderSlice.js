@@ -172,6 +172,7 @@ const orderSlice = createSlice({
         })
         .addCase(fetchOrders.rejected, (state, action)=> {
             state.orderError = action.error;
+            console.log("Order error")
         })
         // create Order 
         builder.addCase(createOrder.pending, (state)=> {

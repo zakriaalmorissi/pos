@@ -59,7 +59,7 @@ function DisplayTable ({table}) {
   
     const {
         bill, 
-        loading, error, 
+        loading, loadingBillError, 
         creatingBill, 
         creatingBillError
     } = useSelector((state)=> state.bill);
@@ -94,11 +94,16 @@ function DisplayTable ({table}) {
     }, []);
 
     useEffect(()=> {
-        if (table.billIds.length === 1) {
-            dispatch(fetchBill(table.billIds.at(0)))
-        }
+        fetchFirstBill();
     }, [table])
 
+    const fetchFirstBill =  () => {
+         if (table.billIds.length === 1) {
+                dispatch(fetchBill(table.billIds.at(0)));
+
+        }
+
+    }
 
     useEffect (()=> {
         // Reeceive the release from the super admin or the admin
@@ -122,6 +127,7 @@ function DisplayTable ({table}) {
 
     const releaseTable =  async () => {
         if (!isOccupiedRef.current) return; // if table is not occupied, never try to release it 
+        restStates()
         const URL = `${url}api/release_table/${table.id}/`;
         await postData(URL, {
             getResponse: (response) => {
@@ -135,10 +141,10 @@ function DisplayTable ({table}) {
       
     }
 
+    // 
     useEffect(()=> {
         const handleBeforeUnload =  (event) => {
             releaseTable();
-            restStates()
             event.returnValue = '';
         }
         // these are not gonna be called unless the event listener has been called
@@ -147,7 +153,6 @@ function DisplayTable ({table}) {
 
         return () => {
             releaseTable()
-            restStates();
             window.removeEventListener('pagehide', handleBeforeUnload);
             window.removeEventListener('beforeunload', handleBeforeUnload);
 
@@ -166,6 +171,7 @@ function DisplayTable ({table}) {
     const restStates = () => {
         dispatch(clearBill());
         dispatch(clearOrders());
+        console.log("restting the table ...")
     }
 
 
@@ -182,8 +188,8 @@ function DisplayTable ({table}) {
     }
 
 
-    // 
-    const createNewBill = () => {
+    // Display the bill form 
+    const onCreateNewBill = () => {
         setViewsModel(prev => ({...prev, createBill: true}))
 
     }
@@ -192,17 +198,24 @@ function DisplayTable ({table}) {
         selectedBill: <BillSelectionView bills={table.billIds} selectedBill={selectTableBill} />
     }
 
+    const billFailure = async () => {
+        // Clear the bill error and other cache data 
+        // Nagivate home and release the table 
+        dispatch(clearBill());
+        await releaseTable();
+        navigate('/home')
+    }
 
     const Processindicators = {
         "creatingBill": creatingBill && <ProcessingIndicator isLoading={creatingBill}
             message={creatingBillError}
-            onIgnore={()=> console.log("Ingoring create failure")}
+            onIgnore={billFailure}
         
         />,
         "loadingBill":  loading && <ProcessingIndicator 
                             isLoading={loading}
-                            message={error?.message}
-                            onIgnore={()=> console.log("eroro")}
+                            message={loadingBillError}
+                            onIgnore={billFailure}
                             
                         />,
         "UpdatingBill": null,
@@ -217,7 +230,7 @@ function DisplayTable ({table}) {
                         table={table} // 
                         handleCompleteAction={handleCompleteAction}
                         orderStatus={orderStatus} 
-                        creatNewBill={createNewBill}            
+                        creatNewBill={onCreateNewBill}            
                     />
                     {
                 

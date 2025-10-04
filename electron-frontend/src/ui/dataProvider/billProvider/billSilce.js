@@ -1,4 +1,4 @@
-import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
+import {createSlice, createAsyncThunk, isRejectedWithValue} from "@reduxjs/toolkit";
 import { fetchData, postData,  updateData } from "../../../network/api";
 import { url } from "../../../network/constants";
 
@@ -15,19 +15,18 @@ const abortFetchingBill = () => {
 
 export const fetchBill =  createAsyncThunk(
     "bill/fetchbill",
-    async (billId, {rejectWithValue}) => {
+    async (billId) => {
         billController = new AbortController();
-        return new Promise ((reslove, reject) => {
-            fetchData(
+        return new Promise((reslove, reject) => {
+          fetchData(
                 `${url}api/bill/${billId}/`,
                 {
-                    getData: (res) => {reslove(res)},
-                    apiError: (error) => {
-                        reject(error)
-                        rejectWithValue(error)}
+                    getData: (res) => reslove(res),
+                    apiError: (err) => reject(err)
                 },
                 undefined,
-                billController
+                billController,
+               
             );
         });
     }
@@ -67,7 +66,6 @@ export const updateBill = createAsyncThunk(
                         getResponse: (res) => reslove(res),
                         apiError: (error) => reject(error)
                     }
-                
                 }
             );
 
@@ -80,15 +78,17 @@ const billSlice = createSlice({
     name: "bill",
     initialState: {
         bill: null,
-        loading: false, error: null, 
-        creatingBill: false, creatingBillError: null,
-        updateError: null, loadingUpdate: false,},
+        loading: false, 
+        loadingBillError: null, 
+        creatingBill: false, 
+        creatingBillError: null,
+        updateError: null, 
+        loadingUpdate: false,},
     reducers: {
-        // add the things i want here 
         clearBill: (state) => {
             if (state.loading) abortFetchingBill();
             state.bill = null;
-            state.error = null;
+            state.loadingBillError = null;
             state.creatingBillError = null;
             state.updateError = null;
             state.loading = false;
@@ -98,21 +98,17 @@ const billSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchBill.pending, (state) => {
-            if (!state.bill){
-                state.loading = true
-            }
-          
-        })
-        .addCase(fetchBill.fulfilled, (state, action)=> {
-         
-            state.loading = false;
-            state.bill = action.payload.data;
-    
-            
+            if (state.bill) return;
+            state.loading = true;
         
         })
+        .addCase(fetchBill.fulfilled, (state, action)=> {
+            state.bill = action.payload.data;
+            state.loading = false;
+        })
         .addCase(fetchBill.rejected, (state, action) => {
-            state.error = action.error.message
+            state.loadingBillError = `Failed to fetch bill due to ${action.error?.message}`;
+            console.log(action)
 
         });
         // Create bill
@@ -125,8 +121,8 @@ const billSlice = createSlice({
             state.creatingBill = false;
         })
         .addCase(createBill.rejected, (state, action)=> {
-            state.creatingBillError = action.error.message
-            console.log(action.payload)
+            state.creatingBillError = action.error
+
         })
 
         // Update bill 

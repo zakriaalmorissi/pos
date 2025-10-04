@@ -48,7 +48,7 @@ async function fetchData<T, E>( url: string, callbacks:{
             
         } catch (error) {
                 callbacks.apiError({status: "error",
-                     message: "network error", error: error} );
+                     message: "network error", error: error as E} );
 
         }}
 
@@ -84,7 +84,7 @@ async function postData<T, E>(url: string, {data, getResponse}:{
         }
 
     } catch (error) {
-        getResponse({status: "error", message: "network error", error: error});
+        getResponse({status: "error", message: "network error", error: error as E});
       
     }  
 }

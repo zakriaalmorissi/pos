@@ -8,6 +8,7 @@ import { fetchOrders, updateOrder, deleteOrder, writeOrderNotes, cleanOrder } fr
 import { fetchBill } from "../../dataProvider/billProvider/billSilce.js";
 import { deleteData, updateData } from "../../../network/api.js";
 import { url } from "../../../network/constants.js";
+import { updateTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
 
 
 // this function needs to have a call back function to perform some necessary  updates to the parent component
@@ -71,8 +72,6 @@ export function Orders() {
 
 
 function OrderCard({value}) {
-    const {bill} = useSelector((state)=> state.bill);
-    const dispatch = useDispatch();
     const [order, setOrder] = useState(value);
     const [activePopUp, setActivePopUp] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -87,6 +86,13 @@ function OrderCard({value}) {
         message: null,
         onIgnor: null,
     })
+
+
+    const {bill} = useSelector((state)=> state.bill);
+    const { tables } = useSelector(s => s.tables);
+    const dispatch = useDispatch();
+
+
 
     useEffect(()=> {setOrder(value)},[value]);
     
@@ -149,6 +155,8 @@ function OrderCard({value}) {
                         setIsProcessing(false);
                         dispatch(deleteOrder(res.data));
                         dispatch(fetchBill(bill?.id));
+                        updateTheTable();
+
                     },
                     apiError: (err)=> {
                         setErrorMessageModel(
@@ -164,11 +172,38 @@ function OrderCard({value}) {
         )
         
     }
-    // I need to update the table in these cases:
-        // 1. when table has only one order, deleting it needs to update the table like hasOrders state
-            // ... and the bill gets empty , so we need to remove it from table 
-        // 2. when the table has more than one bill, if we delete all of the orders of a specific bill 
 
+    const updateTheTable =  async () => {
+
+        // I can get the table id from the bill 
+        // But the bill does not have the table id when it's accesed from the take out section
+        // so we will make a condition
+        const restBill = await dispatch(fetchBill(bill?.id)).unwrap();
+        if (restBill.data || restBill.data.table) {
+            // check if the bill has got no orders any more 
+            if (restBill.data.orders_length === 0) {
+                // remove the bill from the table 
+                const tableId = Number(restBill.data.table);
+                const table = tables.find(t => t.id === tableId);
+                console.log(table)
+                const billIds =  table.billIds.filter(id => id !== bill?.id);
+                const hasOrders = billIds.length > 0;
+                const countedBills =  billIds.length;
+                // update the table 
+                let neTable =  dispatch(updateTables({...table,
+                     billIds: billIds,
+                    hasOrders: hasOrders,
+                    countedBills: countedBills
+                 }))
+                
+                 console.log(neTable);
+
+
+            } 
+        }
+
+    };
+  
         
 
 
