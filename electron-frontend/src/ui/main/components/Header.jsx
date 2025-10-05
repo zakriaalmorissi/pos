@@ -5,7 +5,7 @@ import { TableContext } from "../provider/provider";
 import { NumericKeyBoard } from "../components/components";
 import { TimeoutErrorMessageIndicator } from "../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import { updateBill } from "../../dataProvider/billProvider/billSilce.js";
+import { updateBill } from "../../../dataProvider/billProvider/billSilce.js";
 
 
 export function Header ({tableName}) {

@@ -1,6 +1,6 @@
 import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
-import { fetchData, updateData , postData, deleteData} from "../../../network/api";
-import { url } from "../../../network/constants";
+import { fetchData, updateData , postData, deleteData} from "./../../network/api";
+import { url } from "./../../network/constants";
 import { fetchBill } from "../billProvider/billSilce";
 
 // ✅ Update order (price, quantity, condiments, etc.)

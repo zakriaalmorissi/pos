@@ -6,14 +6,13 @@ import style from './../style/table.module.css';
 import { TableProvider, TableContext} from "../provider/provider.jsx"
 import { Header } from "../components/Header.jsx";
 import { Bill } from "../components/Bill.jsx";
-import { AwardIcon, StepBackIcon} from "lucide-react";
+import { StepBackIcon} from "lucide-react";
 import { ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../components/components.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import BillForm from "../components/billForm.jsx";
-import { createBill, fetchBill, clearBill} from "../../dataProvider/billProvider/billSilce.js";
-import { clearOrders } from "../../dataProvider/orderProvider/orderSlice.js";
+import { createBill, fetchBill, clearBill} from "../../../dataProvider/billProvider/billSilce.js";
+import { clearOrders } from "../../../dataProvider/orderProvider/orderSlice.js";
 import { LoadingSpinner } from "../components/components.jsx";
-import { cleanTable, updateTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
 
 
 

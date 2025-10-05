@@ -4,11 +4,11 @@ import { LoadingSpinner } from "./components.jsx";
 import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "./components.jsx";
 import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchOrders, updateOrder, deleteOrder, writeOrderNotes, cleanOrder } from "../../dataProvider/orderProvider/orderSlice.js";
-import { fetchBill } from "../../dataProvider/billProvider/billSilce.js";
+import { fetchOrders, updateOrder, deleteOrder, writeOrderNotes, cleanOrder } from "../../../dataProvider/orderProvider/orderSlice.js";
+import { fetchBill } from "../../../dataProvider/billProvider/billSilce.js";
 import { deleteData, updateData } from "../../../network/api.js";
 import { url } from "../../../network/constants.js";
-import { updateTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
+import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvider.js";
 
 
 // this function needs to have a call back function to perform some necessary  updates to the parent component
@@ -20,7 +20,6 @@ export function Orders() {
     
     useEffect(()=> {
         if(!bill) return;
-        console.log("Order fetch has been called");
         dispatch(fetchOrders(bill?.id));
     }, [loading, bill?.id]);
 
@@ -154,7 +153,7 @@ function OrderCard({value}) {
                     getResponse: (res) => {
                         setIsProcessing(false);
                         dispatch(deleteOrder(res.data));
-                        dispatch(fetchBill(bill?.id));
+                        // this funtion is gonna update the table if existed togather with the bill;
                         updateTheTable();
 
                     },
@@ -174,7 +173,6 @@ function OrderCard({value}) {
     }
 
     const updateTheTable =  async () => {
-
         // I can get the table id from the bill 
         // But the bill does not have the table id when it's accesed from the take out section
         // so we will make a condition
@@ -195,9 +193,6 @@ function OrderCard({value}) {
                     hasOrders: hasOrders,
                     countedBills: countedBills
                  }))
-                
-                 console.log(neTable);
-
 
             } 
         }

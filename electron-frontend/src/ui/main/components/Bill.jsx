@@ -9,10 +9,9 @@ import { Menu } from "./Menu.jsx";
 import { Orders } from "./Order.jsx";;
 import { ProcessingIndicator, TimeoutErrorMessageIndicator} from '../../components/components.jsx';
 import { useDispatch, useSelector } from "react-redux";
-import { createBill, fetchBill } from "../../dataProvider/billProvider/billSilce.js";
 
-import { createOrder } from "../../dataProvider/orderProvider/orderSlice.js";
-import { updateTables } from "../../dataProvider/tablesProvider/tablesProvider.js";
+import { createOrder } from "../../../dataProvider/orderProvider/orderSlice.js";
+import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvider.js";
 
 
 

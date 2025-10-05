@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import style from './../style/table.module.css';
 import { useSelector, useDispatch } from "react-redux";
-import { resetMenu } from "../../dataProvider/menuProvider/menuProvider.js";
-import { ProcessingIndicator } from "../../components/components.jsx";
-
-
 
 
 
@@ -13,10 +9,7 @@ export function Menu ({handleOrder}) {
     const [itemsWithoutParents, setItemsWithuotParents] = useState([]);
     const [childItems, setChildItems] = useState([]);
     const { menu } = useSelector(state => state.menu);
-    const dispatch = useDispatch();
-
-   
-
+  
 
     const getItems = (name) => {
         window.localStorage.setItem('lastItem', name);

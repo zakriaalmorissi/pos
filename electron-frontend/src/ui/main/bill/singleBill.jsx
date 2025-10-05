@@ -5,7 +5,7 @@ import style from '../style/bills.module.css'
 import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { fetchBill } from "../../dataProvider/billProvider/billSilce";
+import { fetchBill } from "../../../dataProvider/billProvider/billSilce";
 
 
 

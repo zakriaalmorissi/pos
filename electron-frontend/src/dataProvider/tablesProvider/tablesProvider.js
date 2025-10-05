@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchData } from "../../../network/api";
-import { url } from "../../../network/constants";
+import { fetchData } from "./../../network/api";
+import { url } from "./../../network/constants";
 
 // Async thunk to fetch system data
 export const fetchTables = createAsyncThunk(

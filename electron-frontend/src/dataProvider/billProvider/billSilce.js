@@ -1,6 +1,6 @@
-import {createSlice, createAsyncThunk, isRejectedWithValue} from "@reduxjs/toolkit";
-import { fetchData, postData,  updateData } from "../../../network/api";
-import { url } from "../../../network/constants";
+import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
+import { fetchData, postData,  updateData } from "./../../network/api";
+import { url } from "./../../network/constants";
 
 
 // Create a bort controller to avoid late responses that causes memory leak and unwanted results;

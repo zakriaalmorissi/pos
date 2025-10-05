@@ -15,9 +15,8 @@ import {
   XCircleIcon,
 } from 'lucide-react';
 import { ProcessingIndicator, TimeoutErrorMessageIndicator } from './components/components.jsx';
-import { fetchSystem } from './dataProvider/systemProvider/system.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { cleanTable, fetchTables, updateTables } from './dataProvider/tablesProvider/tablesProvider.js';
+import { cleanTable, updateTables } from '../dataProvider/tablesProvider/tablesProvider.js';
 
 // 1. Tables
 // 2. Menu
