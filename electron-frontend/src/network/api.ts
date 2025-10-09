@@ -107,7 +107,7 @@ async function deleteData<T, E> (url: string, {data, callbacks}: {data: T,callba
         const responseData: T | E  = await response.json()
         if (response.ok) {
             callbacks.getResponse({
-                status: "ok ",
+                status: "ok",
                 data: responseData as T,
             
             })

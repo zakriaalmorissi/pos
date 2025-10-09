@@ -19,6 +19,8 @@ import { fetchSystem } from './dataProvider/systemProvider/system';
 import style from './ui/Home.module.css';
 import { postData } from './network/api';
 import { url } from './network/constants';
+import { AwardIcon } from 'lucide-react';
+import { fetchTakeOutBills } from './dataProvider/takeOutBillsProvider/takeOutBillsProvider';
 
 
 function App () {
@@ -79,7 +81,18 @@ function App () {
     if (loadingSystemData || isAuthenticating) return;
     dispatch(fetchTables());
     dispatch(fetchMenu());
+    loadTakeOutBills()
+  
   }, [loadingSystemData, dispatch, isAuthenticating]);
+
+  const loadTakeOutBills = async () => {
+    try {
+       await dispatch(fetchTakeOutBills()).unwrap();
+    } catch (err) {
+      console.log(err)
+    } 
+ 
+  }
 
   // Sync loading state
   useEffect(() => {

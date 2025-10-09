@@ -94,7 +94,7 @@ class Order(models.Model):
     food_name = models.CharField(max_length=240)
     quantity = models.PositiveIntegerField(default=1, validators=[validate_positive])
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    condiments = models.CharField(max_length=240, blank=True)
+    condiments = models.CharField(max_length=400, blank=True)
     created_at = models.DateTimeField(auto_now_add=True) # what is the difference between auto_add_now and auto_now ?
     updated_at = models.DateTimeField(auto_now=True)
     

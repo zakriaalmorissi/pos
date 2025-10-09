@@ -3,19 +3,21 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
-    background-color: var(--main-bg);
+    align-items: center;
+    background-color: var(--main-bgs);
 }
 
 .billsHomeHeader {
     display: flex;
-    background-color: var(--accent-bg);
+    background-color: var(--secondary-colors);
     width: 100%;
-    height: 6vh;
+    height: 7vh;
     margin-bottom: var(--spacing);
-    color: var(--main-color);
+    color: var(--main-colors);
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    padding: 0 var(--spacing);
+    border-bottom: 1px solid var(--border-colors);
+    padding: var(--spacing);
+
 }
 
 .billsHomeHeader button {
@@ -23,9 +25,10 @@
     flex-direction: row;
     align-items: center;
     height: 100%;
+    width: 5rem;
     margin-right: var(--spacing);
-    background-color: var(--main-bg);
-    color: var(--main-color);
+    background-color: var(--buttons-bg);
+    color: var(--main-colors);
     border: none;
     border-radius: var(--border-radius);
     padding: 0 var(--spacing);
@@ -33,24 +36,31 @@
     transition: background 0.2s;
 }
 .billsHomeHeader button:hover {
-    background-color: var(--button-hover);
+    background-color: var(--buttons-hover);
 }
 
+
+
+.billsHomeHeader h2 {
+    margin-left: 40%;
+}
 .billsHomeBody {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     padding: var(--spacing);
-    width: 100%;
+    width: 99%;
     height: max-content;
-    background-color: var(--main-bg);
+    border-radius: var(--spacing);
+    background-color: rgba(155, 155, 155, 0.527);
+    overflow-y: scroll;
 }
 
 .billsHomeBody button {
-    width: 8rem;
-    height: 5rem;
-    background-color: var(--main-bg);
-    color: var(--main-color);
+    width: 11rem;
+    height: 6rem;
+    background-color: var(--main-bgs);
+    color: var(--main-colors);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     padding: var(--spacing);
@@ -59,27 +69,30 @@
     transition: background 0.2s, border 0.2s;
 }
 .billsHomeBody button:hover {
-    background-color: var(--button-hover);
+    background-color: var(--buttons-hover);
     border-color: var(--main-color);
 }
 
 .singleBillContainer {
-    background-color: var(--accent-bg);
-    color: var(--main-color);
-    border: 1px solid var(--border-color);
+    font-weight: 600;
+    background-color: white;
+    color: var(--main-colors);
+    border: 0.1px solid var(--border-color);
     border-radius: var(--border-radius);
     padding: var(--spacing);
     margin: var(--spacing) 0.4rem var(--spacing) 0;
-    width: 8rem;
-    height: 5rem;
+    width: 11rem;
+    height: 6rem;
     text-decoration: none;
     transition: border 0.2s, box-shadow 0.2s;
 }
 .singleBillContainer:hover {
-    border-color: var(--main-color);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    background-color: var(--buttons-hover);
+    box-shadow: 0 2px 8px rgba(238, 254, 255, 0.986);
 }
 
+
+/* Single Bill Page  ----------------------------------------------------------------------*/
 .singleBill {
     display: flex;
     flex-direction: column;
@@ -93,8 +106,8 @@
     align-items: center;
     height: 7%;
     width: 100%;
-    background-color: var(--main-bg);
-    color: var(--main-color);
+    background-color: var(--secondary-colors);
+    color: var(--main-colors);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     justify-content: space-between;

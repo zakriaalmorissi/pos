@@ -6,8 +6,6 @@ import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } fro
 import { useSelector, useDispatch } from "react-redux";
 import { fetchOrders, updateOrder, deleteOrder, writeOrderNotes, cleanOrder } from "../../../dataProvider/orderProvider/orderSlice.js";
 import { fetchBill } from "../../../dataProvider/billProvider/billSilce.js";
-import { deleteData, updateData } from "../../../network/api.js";
-import { url } from "../../../network/constants.js";
 import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvider.js";
 
 
@@ -22,7 +20,6 @@ export function Orders() {
         if(!bill) return;
         dispatch(fetchOrders(bill?.id));
     }, [loading, bill?.id]);
-
 
     // Override the client name 
     return  <div className={style.ordersContainer}>
@@ -80,14 +77,14 @@ function OrderCard({value}) {
         data: null,
         onContinue: null
     });
-    const [errorMeassageModel, setErrorMessageModel] = useState({
+    const [errorMessageModel, setErrorMessageModel] = useState({
         show: false,
         message: null,
-        onIgnor: null,
+        onIgnore: null,
     })
 
 
-    const {bill} = useSelector((state)=> state.bill);
+    const { bill } = useSelector((state)=> state.bill);
     const { tables } = useSelector(s => s.tables);
     const dispatch = useDispatch();
 
@@ -108,7 +105,7 @@ function OrderCard({value}) {
         setErrorMessageModel({
             show: false,
             message: null,
-            onIgnor: null,
+            onIgnore: null,
         })
 
     }
@@ -119,12 +116,9 @@ function OrderCard({value}) {
         hideErrorMessage();
     }
 
-   
-  
-
     // Manage order Deleting // Bill related 
     const processOrderDelete = () => {
-        if (!order.isOrdered) {
+        if (order.isOrdered) {
             setWarningModel({
                 show: true,
                 message: `The ${order.name} is already delivered . Are you sure you want to delete this item ?`,
@@ -133,7 +127,6 @@ function OrderCard({value}) {
             })
             return;
         }
-      
         // If the order is not delivered, call the delete fun without warning
         onDeleteOrder();
     }
@@ -144,31 +137,17 @@ function OrderCard({value}) {
         hideWarning();
         setIsProcessing(true);
         setActivePopUp("");
-        // Delete the order 
-        await deleteData(
-            `${url}api/order-view/${order?.id}/`,
-            {
-                data: {id: order?.id},
-                callbacks: {
-                    getResponse: (res) => {
-                        setIsProcessing(false);
-                        dispatch(deleteOrder(res.data));
-                        // this funtion is gonna update the table if existed togather with the bill;
-                        updateTheTable();
+        try {
+            await dispatch(deleteOrder(order?.id)).unwrap();
+            await updateTheTable();
+            setIsProcessing(false);
 
-                    },
-                    apiError: (err)=> {
-                        setErrorMessageModel(
-                            {
-                                show:false,
-                                message: err.message,
-                                onIgnor: hideProcessingIndicator,
-                            }
-                        )
-                    }   
-                }
-            }
-        )
+        } catch (error) {
+            setErrorMessageModel({
+                message: error.message,
+                onIgnore: hideProcessingIndicator
+            })
+        }     
         
     }
 
@@ -177,18 +156,18 @@ function OrderCard({value}) {
         // But the bill does not have the table id when it's accesed from the take out section
         // so we will make a condition
         const restBill = await dispatch(fetchBill(bill?.id)).unwrap();
-        if (restBill.data || restBill.data.table) {
+        if (restBill?.data || restBill?.data?.table) {
             // check if the bill has got no orders any more 
             if (restBill.data.orders_length === 0) {
                 // remove the bill from the table 
                 const tableId = Number(restBill.data.table);
                 const table = tables.find(t => t.id === tableId);
-                console.log(table)
+               if (!table) return;
                 const billIds =  table.billIds.filter(id => id !== bill?.id);
                 const hasOrders = billIds.length > 0;
                 const countedBills =  billIds.length;
                 // update the table 
-                let neTable =  dispatch(updateTables({...table,
+                dispatch(updateTables({...table,
                      billIds: billIds,
                     hasOrders: hasOrders,
                     countedBills: countedBills
@@ -199,12 +178,9 @@ function OrderCard({value}) {
 
     };
   
-        
-
-
 
     // Overriding the price problem // bill related 
-    const overridePrice = async (value)=> {
+    const overridePrice = (value)=> {
         dispatch(updateOrder({orderId: order?.id, billId: bill?.id, data:{price: value}}),);
         setActivePopUp("");
         
@@ -228,29 +204,28 @@ function OrderCard({value}) {
             setActivePopUp("");
             return;
         }
-        // l'm not gonna call the fetch bill function 
-        await updateData(
-            `${url}api/order-view/${order?.id}/`,
-            {
-                data: {condiments: condiments},
-                callbacks: {
-                    getResponse:(res)=> {
-                        const newOrder = cleanOrder(res.data);
-                        dispatch(writeOrderNotes(newOrder));
-                    },
-                    apiError: (err)=> {
-                        setErrorMessageModel({
+
+        try {
+
+        // Send the update to the backend
+        const updated = await dispatch(updateOrder({
+            orderId: order?.id, billId: bill?.id,
+            data: {condiments: condiments}
+        })).unwrap();
+
+        // Update the current state after successfully update
+        const cleanedOrder = cleanOrder(updated.data);
+        dispatch(writeOrderNotes(cleanedOrder));
+
+        } catch (err) {
+            setErrorMessageModel({
                             show: true,
                             message: `Ooops.. Failed to make add condiment due to ${err.message}`,
                             onIgnor: null,
                         })
-
-                    }
-                }
-            }
-        )
-        setActivePopUp("");
-        
+        }
+        // 
+        setActivePopUp("");   
     }
 
 
@@ -343,13 +318,13 @@ function OrderCard({value}) {
         {
             isProcessing && <ProcessingIndicator 
                 isLoading={isProcessing}
-                message={errorMeassageModel.message}
-                onIgnore={errorMeassageModel.onIgnor}
+                message={errorMessageModel.message}
+                onIgnore={errorMessageModel.onIgnore}
             
             />
         } 
         {
-            errorMeassageModel.show && <TimeoutErrorMessageIndicator message={errorMeassageModel.message}/>
+            errorMessageModel.show && <TimeoutErrorMessageIndicator message={errorMeassageModel.message}/>
         }
       
      

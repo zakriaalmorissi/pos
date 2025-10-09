@@ -19,7 +19,7 @@ urlpatterns = [
 urlpatterns += [
     path(route="create-bill/", view=views.create_bill),
     path(route='bill/<int:bill_id>/', view=views.bill_view,),
-    path(route="bills/", view=views.take_out_bills_view)
+    path(route="take-out-bills/", view=views.take_out_bills_view)
 ]
 
 urlpatterns += [

@@ -4,6 +4,7 @@ import orderSlice from './orderProvider/orderSlice';
 import  systemSlice from "./systemProvider/system";
 import  tablesSilce from './tablesProvider/tablesProvider';
 import menuSlice from './menuProvider/menuProvider'
+import takeOutBillsSlice from "./takeOutBillsProvider/takeOutBillsProvider";
 
 
 
@@ -13,7 +14,8 @@ const store = configureStore({
         bill: billSlice,
         order: orderSlice,
         tables: tablesSilce,
-        menu: menuSlice
+        menu: menuSlice,
+        takeOutBills: takeOutBillsSlice
     }
 })
 

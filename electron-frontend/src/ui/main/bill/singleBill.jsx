@@ -5,7 +5,8 @@ import style from '../style/bills.module.css'
 import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { fetchBill } from "../../../dataProvider/billProvider/billSilce";
+import { clearBill, fetchBill } from "../../../dataProvider/billProvider/billSilce";
+import { clearOrders } from "../../../dataProvider/orderProvider/orderSlice";
 
 
 
@@ -29,6 +30,8 @@ export function SingleBill () {
 
     const handleCompleteAction = () => {
         navigate('/billsHome')
+        dispatch(clearBill());
+        dispatch(clearOrders());
         
     }
 

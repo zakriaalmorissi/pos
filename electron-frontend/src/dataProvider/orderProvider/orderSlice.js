@@ -80,6 +80,30 @@ export const fetchOrders = createAsyncThunk(
     }
 );
 
+
+export const deleteOrder = createAsyncThunk (
+  "order/deleteOrder",
+  async (orderId, {dispatch}) => {
+    return new Promise((resolve, reject)=> {
+       deleteData(
+        `${url}api/order-view/${orderId}/`,
+        {
+          data: {id: orderId},
+          callbacks: {
+            getResponse: (res) => {
+              dispatch(removeOrder(orderId));
+              resolve(res);
+            },
+            apiError: (err) => reject(err)
+
+          }
+        }
+       )
+
+    });
+  }
+);
+
 export const cleanOrder = (order) => {
   /// Clean the fetched order to make it more readable following the javascript naming convention
     // Create a formatter for relative time
@@ -138,9 +162,9 @@ const orderSlice = createSlice({
             state.orderLoading = false;
             state.orderError = null;
         },
-        deleteOrder: (state, order) => {
+        removeOrder: (state, order) => {
           // remove the order from the list 
-          const orderId = Number(order.payload.id);
+          const orderId = Number(order.payload);
           const indexOrder = state.orders.findIndex( order=> order.id === orderId);
           if (indexOrder !== -1) {
             state.orders.splice(indexOrder, 1);
@@ -206,6 +230,6 @@ const orderSlice = createSlice({
 })
 
 
-export const { clearOrders, deleteOrder, writeOrderNotes } = orderSlice.actions;
+export const { clearOrders, removeOrder, writeOrderNotes } = orderSlice.actions;
 
 export default orderSlice.reducer; 

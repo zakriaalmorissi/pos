@@ -1,69 +1,40 @@
 import { useState, useEffect } from "react";
-import { url } from "../../../network/constants";
-import style from '../style/bills.module.css'
-import { fetchData, postData } from "../../../network/api";
+import style from '../style/bills.module.css';
 import { StepBackIcon} from 'lucide-react'
 import { Link, useNavigate } from "react-router-dom";
 import  BillForm  from "../components/billForm";
+import { useDispatch, useSelector } from "react-redux";
+import { createBill } from "../../../dataProvider/billProvider/billSilce";
+import { addTakeOutBill } from "../../../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
+import { TimeoutErrorMessageIndicator } from "../../components/components";
 
 
 
 export function BillsHome({}) {
-    const [bills, setBills] = useState([]);
+    const { takeOutBills } = useSelector( s => s.takeOutBills );
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [createBillErorr, setCreateBillError] = useState(null);
 
     const [displayBillForm, setDisplayBillForm] = useState(false);
-    const [createdBill, setCreatedBill] = useState(null);
-    
-
-    useEffect(()=> {
-        loadBills();
-    },[]);
-
-
-    const loadBills = async () => {
-        const billsUrl = `${url}api/bills/`;
-        await fetchData(billsUrl, 
-            {
-                getData: (response) => {
-                    setBills(response.data)
-                    console.log(response)
-
-                },
-                apiError:(responseError) => {
-                    console.log(responseError)
-
-                }
-            }
-        )
-    }
-
 
     const onCreateBill = async (data) => {
-        const billURL = `${url}api/create_bill/`;
-        await postData(
-            billURL,
-            {
-                data: data,
-                getResponse: (response) => {
-                    console.log(response)
-                    if (response.status === "ok"){
-                        setCreatedBill(response.data);
-                        navigate(`/singleBill/${response.data.id}`)
-
-                    }
-
-                },
-
-            }
-
-        )
-
+        setCreateBillError(null);
+        try {
+            const bill = await dispatch(createBill(data)).unwrap();
+            navigate(`/singleBill/${bill.data.id}`);
+            // Update the bills 
+            dispatch(addTakeOutBill(bill.data));
+        } catch (err) {
+            setCreateBillError(`Failed to create Bill due to ${err.message}`);
+        }
+       
     }
 
-
+   
 
     return  displayBillForm? <div className={style.billFormContainer}>
+        {createBillErorr && <TimeoutErrorMessageIndicator message={createBillErorr}/>}
         <BillForm onSubmit={onCreateBill}/>
     </div> :
      <div className={style.billsHome}>
@@ -80,7 +51,7 @@ export function BillsHome({}) {
                 <p>New</p>
             </button>
             {
-                bills.map((bill)=> {
+                takeOutBills.map((bill)=> {
                     return <Link 
                         key={bill.id}
                         className={style.singleBillContainer}
@@ -92,6 +63,8 @@ export function BillsHome({}) {
                 })
             }
         </div>
+
+
 
     </div>
 

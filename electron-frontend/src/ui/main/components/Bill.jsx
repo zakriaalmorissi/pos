@@ -12,6 +12,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { createOrder } from "../../../dataProvider/orderProvider/orderSlice.js";
 import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvider.js";
+import { fetchBill, updateBill } from "../../../dataProvider/billProvider/billSilce.js";
+import { data } from "react-router-dom";
 
 
 
@@ -93,28 +95,23 @@ import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvide
     const handleBillDiscount = async (value) => {
         hideErrorMessage();
         setIsProcessing(true);
-        // update the bill discount value 
-        const billUrl =  `${url}api/bill/${bill?.id}/`;
-        await updateData(billUrl, {
-            data: {discount: value},
-            callbacks: {
-                getResponse: (response) => {
-                    setIsProcessing(false);
-                },
-                apiError: (responseError) => {
-                    setErrorMessageModel({
+        try {
+            await dispatch(updateBill({billId: bill?.id, data: {discount: value}})).unwrap();
+            setIsProcessing(false);
+            dispatch(fetchBill(bill?.id));
+
+        } catch (err) {
+            setErrorMessageModel({
                         show: true,
                         type: null,
-                        message: `Oooh .. Failed to make a discount due to ${responseError.message}`,
+                        message: `Oooh .. Failed to make a discount due to ${err.message}`,
                         onHide: hideProcessingIndicator
 
-                    })
+                })
+        }
 
-                }
-            }
-        })
-       
-
+      
+    
     }
 
     // share the list of the orders, and the bill from here
@@ -163,13 +160,18 @@ import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvide
         creatNewBill();
     }
 
+    const onBillDiscount = (data) => {
+        setActivePopUpView("");
+        handleBillDiscount(data);
+    }
+
 
     // Views 
     const views = {
         discount: (
             <DiscountComponent 
                 onBack={()=> setActivePopUpView("")}
-                onSubmit ={handleBillDiscount}
+                onSubmit ={onBillDiscount}
             />
         ),
         "menu-options": (
