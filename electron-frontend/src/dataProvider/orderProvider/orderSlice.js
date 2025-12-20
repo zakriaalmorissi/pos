@@ -16,7 +16,6 @@ export const updateOrder = createAsyncThunk(
           callbacks: {
             getResponse: (res) => {
               // After updating → refresh bill
-              dispatch(fetchBill(billId));
               resolve(res);
             },
             apiError: (err) => reject(err),
@@ -32,7 +31,7 @@ export const updateOrder = createAsyncThunk(
 
 export const createOrder = createAsyncThunk(
     "order/createOrder",
-   async ({data, billId}, {dispatch}) => {
+   async ({data}) => {
         return new Promise((resolve, reject)=> {
             postData(
                 `${url}api/create-order/`,
@@ -40,7 +39,6 @@ export const createOrder = createAsyncThunk(
                     data: data,
                     getResponse: (res) => {
                         if (res.status === "ok"){
-                            dispatch(fetchBill(billId)); 
                             resolve(res);
                         } else {
                             reject(res);
@@ -126,6 +124,7 @@ export const cleanOrder = (order) => {
 
   const orderTime = getRelativeTime(Date.now() - new Date(order.created_at));
   let condiments = order.condiments.split(",");
+  const updateTime = getRelativeTime(Date.now() - new Date(order.updated_at));
 
   // Return the cleaned order
   return {
@@ -140,7 +139,7 @@ export const cleanOrder = (order) => {
           hasTable: order.has_table,
           condiments: condiments,
           orderedAt: orderTime,
-          updatedAt: order.updated_at,
+          updatedAt: updateTime,
       }
    
 }
@@ -165,7 +164,7 @@ const orderSlice = createSlice({
         removeOrder: (state, order) => {
           // remove the order from the list 
           const orderId = Number(order.payload);
-          const indexOrder = state.orders.findIndex( order=> order.id === orderId);
+          const indexOrder = state.orders.findIndex( order => order.id === orderId);
           if (indexOrder !== -1) {
             state.orders.splice(indexOrder, 1);
           }
@@ -189,14 +188,16 @@ const orderSlice = createSlice({
          
         })
         .addCase(fetchOrders.fulfilled, (state, action)=> {
+          state.orders = [];
             state.orders = action.payload.data.map((order)=> {
               return cleanOrder(order);
             });
             state.orderLoading = false;
         })
         .addCase(fetchOrders.rejected, (state, action)=> {
+            state.orders = [];
             state.orderError = action.error;
-            console.log("Order error")
+          
         })
         // create Order 
         builder.addCase(createOrder.pending, (state)=> {
@@ -230,6 +231,6 @@ const orderSlice = createSlice({
 })
 
 
-export const { clearOrders, removeOrder, writeOrderNotes } = orderSlice.actions;
+export const {clearOrders, removeOrder, writeOrderNotes } = orderSlice.actions;
 
 export default orderSlice.reducer; 

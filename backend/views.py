@@ -23,8 +23,7 @@ def admin_only_view(view_func):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
-@authentication_classes([JWTAuthentication])
+
 def home(request) -> Response:
     """
     Gets all categories with proper REST conventions
@@ -39,6 +38,8 @@ def home(request) -> Response:
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def menu_view(request): 
     menu = Category.objects.all()
     serialize = SerializeMenu(menu, many=True)

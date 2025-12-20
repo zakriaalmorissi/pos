@@ -149,7 +149,8 @@
 /*  Timeout error message indicator */
 
 
-.timeout-error-message-container {
+.timeout-error-message-container, 
+.timeout-message-container {
     display: flex;
     position: fixed;
     top: 6%;
@@ -161,7 +162,8 @@
     border-radius: 1rem;
 }
 
-.timeout-error-message-body {
+.timeout-error-message-body,
+.timeout-message-body {
     display: flex;
     align-items: center;
     width: 100%;
@@ -169,3 +171,26 @@
     color: rgb(247, 69, 69);
     padding: 0.5rem;
 }
+
+.timeout-message-container {
+    min-width: fit-content;
+    background-color: rgba(140, 213, 241, 0.842);
+}
+
+.timeout-message-body {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    height: 100%;
+    color: rgb(47, 50, 228);
+    padding: 0.5rem;
+
+}
+
+.timeout-message-content {
+    padding: 0.5rem;
+}
+
+
+
+

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {  Link, useNavigate } from 'react-router-dom';
-import { fetchData, postData, updateData } from '../network/api.ts';
+import { fetchData,updateData } from '../network/api.ts';
 import { url } from '../network/constants.js';
 import style from './Home.module.css';
 import {
@@ -14,14 +14,11 @@ import {
   Wifi,
   XCircleIcon,
 } from 'lucide-react';
-import { ProcessingIndicator, TimeoutErrorMessageIndicator } from './components/components.jsx';
+import { ProcessingIndicator, TimeoutErrorMessageIndicator, TimeoutMessageIndicator} from './components/components.jsx';
 import { useDispatch, useSelector } from 'react-redux';
-import { cleanTable, updateTables } from '../dataProvider/tablesProvider/tablesProvider.js';
+import {  updateTables } from '../dataProvider/tablesProvider/tablesProvider.js';
 
-// 1. Tables
-// 2. Menu
-// 3. Take out Bills 
-// 4. 
+
 
 // ---------------------- Home (main UI) ----------------------
 export function Home() {
@@ -36,7 +33,7 @@ export function Home() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [socketError] = useWebSocketTables();
+
   const [firstPressedTable, setFirstPressedTable] = useState(null);
   const [displayMenu, setDisplayMenu] = useState(false);
 
@@ -48,15 +45,11 @@ export function Home() {
         setFetchingError(null);
       },
       apiError: (error) => {
-        if (error.status === '401') {
-          navigate('/login');
-        } else {
-          setFetchingError(`Failed to fetch data due to ${error.status}`);
-        }
+      
+        setFetchingError(`Failed to fetch data due to ${error.status}`);
+      
       },
     });
-    // only run on mount or if dispatch/navigate change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchRelatedTables = (floorId) => {
@@ -88,10 +81,10 @@ export function Home() {
     // so { hasOrders: false, countedBills: 0, billIds: [] }
     if (!firstPressedTable) return;
     setIsTransforming(true);
-    const IDS = firstPressedTable?.billIds;
+    const bills = firstPressedTable?.bills;
 
     // If no bill IDs, short-circuit
-    if (IDS.length === 0) {
+    if (bills.length === 0) {
       setTransformingError('No bills to transform.');
       setIsTransforming(false);
       return;
@@ -99,8 +92,8 @@ export function Home() {
 
     // Update bills sequentially and wait for responses
     Promise.all(
-      IDS.map((id) => {
-        const billUrl = `${url}api/bill/${id}/`;
+      bills.map((bill) => {
+        const billUrl = `${url}api/bill/${bill.id}/`;
         return new Promise((resolve, reject) => {
           updateData(
             billUrl,
@@ -125,11 +118,10 @@ export function Home() {
         /// First empty the sender table 
         const senderTable = {
           id: firstPressedTable?.id, 
-          hasOrders: false, billIds: [], countedBills: 0
+          hasOrders: false, bills: [], countedBills: 0
         }
         dispatch(updateTables(senderTable));
         // Then update the reciever table 
-        updateRecieverTable(res)
         setIsTransforming(false);
         setIsNavigateTables(true);
         setFirstPressedTable(null);
@@ -140,43 +132,32 @@ export function Home() {
         setIsTransforming(false);
       });
 
-      const updateRecieverTable = (data) => {
-      // Clone the existing table first (so we don’t mutate Redux state directly)
-        let updatedTable = {
-          ...table,
-          billIds: [...(table.billIds || [])], // copy current billIds
-        };
-
-        // Add all new bill ids from the response
-        data.forEach((d) => {
-          updatedTable.billIds.push(d.data.id);
-        });
-
-        // Update other fields
-        updatedTable.hasOrders = true;
-        updatedTable.countedBills = updatedTable.billIds.length;
-
-        console.log("Updated table:", updatedTable)
-
-        // Dispatch redux update
-        dispatch(updateTables(updatedTable));
-};
 
   };
-  const getClickedTable = (tableId) => {
-    const tableArr = tables.filter((t) => tableId === t.id);
-    if (!tableArr || tableArr.length === 0) return;
-    const table = tableArr[0];
 
-    if (!firstPressedTable && table.hasOrders) {
-      setFirstPressedTable(table);
-      return;
-    }
-    if (table === firstPressedTable) {
+
+  
+  const getClickedTable = (tableId) => {
+  
+    const tableArr = tables.filter((t) => t.id ===  tableId);
+    if (tableArr.length === 0) {
       setFirstPressedTable(null);
       return;
     }
-    if (firstPressedTable) transFormBill(table);
+    const foundTable = tableArr[0];
+    if (foundTable.hasOrders) {
+      setFirstPressedTable(foundTable);
+    }
+    // The second click
+    if (foundTable?.id === firstPressedTable?.id) return;
+
+    if (firstPressedTable && foundTable) {
+      transFormBill(foundTable)
+    }
+     
+    
+
+  
   };
 
   const onNavigate = () => {
@@ -185,7 +166,6 @@ export function Home() {
 
   // View errors sets
   const viewError = {
-    socketError: socketError && <TimeoutErrorMessageIndicator message={socketError} />,
     transformingError: isTransforming && (
       <ProcessingIndicator
         isLoading={isTransforming}
@@ -243,13 +223,12 @@ export function Home() {
 
         {viewError.loadDataError ? (
           viewError.loadDataError
-        ) : (
-          <div className={style.devMainTables}>
-            {currentTables.map((table) => (
-              <Table key={table.id} table={table} isNavigate={isNavigateTables} onClicked={getClickedTable} />
-            ))}
-          </div>
-        )}
+        ) : isNavigateTables? (
+            <TablesComponent tables={currentTables} isNavigateTables={isNavigateTables} getClickedTable={getClickedTable}/>
+        
+        ): <SelecTabletMode tables={currentTables} getClickedTable={getClickedTable}/>
+      
+      }
       </div>
 
       {displayMenu && (
@@ -276,122 +255,114 @@ export function Home() {
           </div>
         </div>
       )}
-
-      {viewError.socketError}
+      
       {viewError.transformingError}
     </div>
   );
 }
 
-// ---------------------- useInnerTable hook ----------------------
-function useInnerTable(table) {
-  const [updatedTable, setTable] = useState(table);
-  const [isClicked, setIsClicked] = useState(false);
 
-  useEffect(() => {
-    setTable(table);
-    setIsClicked(false);
-  }, [table]);
 
-  return [updatedTable, isClicked, setIsClicked];
+function TablesComponent ({tables, isNavigateTables, getClickedTable }) {
+  return  <div className={style.devMainTables}>
+            {tables.map((table) => (
+              <TableCard key={table.id} table={table} isNavigate={isNavigateTables} onClicked={getClickedTable} />
+            ))}
+          </div>
 }
+
+function SelecTabletMode ({tables, getClickedTable}) {
+
+  return <div className={style.devMainTables}
+      style={
+        {
+          padding: '10%'
+        }
+      }
+  >
+      <TimeoutMessageIndicator  message={"Select  a blue table"}  timer={"infinite"} />
+      {
+        tables.map((table) => <TableCard  table={table} onClicked={getClickedTable} isNavigate={false} />)
+      }
+  </div>
+
+}
+
 
 // ---------------------- Table component ----------------------
-function Table({ table, isNavigate, onClicked }) {
-  const [updatedTable, isClicked, setIsClicked] = useInnerTable(table);
-
-  const handleOnClick = (tableId) => {
-    // update the local state
-    setIsClicked(!isClicked);
-    onClicked(tableId);
-  };
-
-  const className = `
-        ${style.singleTable}
-        ${updatedTable.status === 'occupied' ? style["occupied"] :
-    updatedTable.hasOrders ? style.hasOrders : style[updatedTable.status]}
-    `;
-
-  if (updatedTable.status === 'occupied') {
-    return <div className={style.singleTableContainer}> <div className={className}>{table.name}</div> </div>;
-  }
-
-  if (isNavigate) {
-    return (
-    <div className={style.singleTableContainer}>
-      { table.countedBills > 1 && <p className={style.countedBills}>{table.countedBills}</p>}
-      <Link className={className} to={`/home/singleTable/${table.id}`}>
-          {table.name}
-      </Link>
-
-    </div>
-     
-    );
-  }
-
-  // transfer / select mode
-  if (isClicked && updatedTable.hasOrders) {
-    return (
-     <div className={style.singleTableContainer}>
-        <button className={className} style={{ backgroundColor: 'red' }} onClick={() => handleOnClick(table.id)}>
-          {table.name}
-        </button>
-     </div> 
-   
-    );
-  }
-
-  return (
-    <div className={style.singleTableContainer}>
-      <button className={className} onClick={() => handleOnClick(table.id)}>
-      {table.name}
-      </button>
-    </div>
-  
-  );
-}
-
-// ---------------------- useWebSocketTables hook ----------------------
-function useWebSocketTables() {
-  const [socketError, setSocketError] = useState(null);
-  const dispatch = useDispatch();
+function TableCard({ table, isNavigate, onClicked }) {
+  const isClicked = useRef(false);
 
   useEffect(() => {
-    let socket;
-    try {
-      socket = new WebSocket('ws://localhost:8000/ws/table/');
+    isClicked.current = false;
+    
+  }, [table?.id, isNavigate]);
 
-      socket.onmessage = (e) => {
-        try {
-          const updatedTable = cleanTable(JSON.parse(e.data));
-          dispatch(updateTables(updatedTable));
-        } catch (err) {
-          console.error('Failed to parse WS message', err);
+  const handleOnClick = (tableId) => {
+    isClicked.current = true;
+    onClicked(tableId)
+  
+  };
+
+  
+  const className = `
+        ${style.singleTable}
+        ${table.status.occupied
+          ? style["occupied"]
+          : table.hasOrders
+              ? style.hasOrders
+              : style["available"]
         }
-      };
+    `;
 
-      socket.onerror = (error) => {
-        setSocketError('Ooops .. Failed to connect to other devices !');
-      };
+  // If the table is occupied → just show the box with no click actions
+  if (table.status.occupied) {
+    return (
+      <div className={style.singleTableContainer}>
+        <div className={className}>{table.name}</div>
+      </div>
+    );
+  }
 
-      socket.onclose = (event) => {
-        if (!event.wasClean) {
-          setSocketError('Connection closed unexpectedly');
-        }
-      };
-    } catch (err) {
-      console.error('Failed to create WebSocket', err);
-      setSocketError('Ooops .. Failed to connect to other devices !');
-    }
+  // If navigate mode is on → tables act as links
+  if (isNavigate) {
+    return (
+      <div className={style.singleTableContainer}>
+        {table.countedBills > 1 && (
+          <p className={style.countedBills}>{table.countedBills}</p>
+        )}
+        <Link className={className} to={`/home/singleTable/${table.id}`}>
+          {table.name}
+        </Link>
+      </div>
+    );
+  }
 
-    return () => {
-      try {
-        if (socket) socket.close();
-      } catch (err) {
-        // ignore
-      }
-    };
-  }, [dispatch]);
+  // Transfer/select mode: Table has orders and is clicked
+  if (isClicked.current && table.hasOrders) {
+    return (
+      <div className={style.singleTableContainer}>
+        <button
+          className={className}
+          style={{ backgroundColor: "red" }}
+          onClick={() => handleOnClick(table.id)}
+        >
+          {table.name}
+        </button>
+      </div>
+    );
+  }
 
-  return [socketError];
+  // Default click mode
+  return (
+    <div className={style.singleTableContainer}>
+          {table.countedBills > 1 && (
+            <p className={style.countedBills}>{table.countedBills}</p>
+          )}
+    
+        <button className={className} onClick={() => handleOnClick(table.id)}>
+          {table.name}
+        </button>
+  </div>
+  );
 }

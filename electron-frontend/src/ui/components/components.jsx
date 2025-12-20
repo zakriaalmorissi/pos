@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './style.css'
 
-export function ProcessingIndicator ({isLoading ,message, onIgnore}) {
+export function ProcessingIndicator ({isLoading ,message, onIgnore, buttonLabel}) {
     // This function is gonna indicate the proccess of posting some data, or perform some actions
     // If the proccess fails, it is gonna display a message explaining the problem, and give a chance to retry the process or cancel it 
 
@@ -22,7 +22,7 @@ export function ProcessingIndicator ({isLoading ,message, onIgnore}) {
                         <p>{message}</p>
                     </div>
                     <div className="indicator-buttons-container">
-                        <button onClick={onIgnore} >OK</button>
+                        <button onClick={onIgnore} > {buttonLabel? buttonLabel: "Ok"}</button>
                     </div>
                 </div>
 
@@ -92,4 +92,34 @@ export function TimeoutErrorMessageIndicator ({message}) {
 
 
 
+}
+
+export function TimeoutMessageIndicator ({
+    message,
+    timer,
+    position, 
+    backgroundColor,
+     
+}) {
+    const [show, setShow] = useState(true);
+
+    useEffect(()=> {
+        if (timer === "infinite") return;
+        const time = setTimeout(()=> {
+            setShow(false)
+        }, timer? timer: 3500 );
+
+        return () => {
+            clearTimeout(time)
+        }
+    }, []);
+
+      return show && <div className='timeout-message-container'>
+        <div className='timeout-message-body'>
+            <p className='timeout-message-content'>
+                {message}
+            </p>
+        </div>
+
+    </div>
 }

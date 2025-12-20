@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import style from './../style/table.module.css';
+import style from './style/bill.module.css'
 import { useSelector, useDispatch } from "react-redux";
 
 

@@ -21,6 +21,7 @@ async function fetchData<T, E>( url: string, callbacks:{
     getData: (data: SuccessResponse<T>)=> void,
     apiError: (response: ErrorResponse<E>) => void
 }, options?: RequestInit, controller?: AbortController): Promise<void> {
+    
   
     try { 
             const defaultOptions: RequestInit = {
@@ -178,6 +179,14 @@ async function updateData<T, E> (url: string, {data, callbacks}: {
                     error: responseData as E,
                     message: "Unexpected Error"
 
+                }
+            )
+         } else if (response.status === 404) {
+            callbacks.apiError(
+                {
+                    status: "Not Found",
+                    error: responseData as E,
+                    message: "Unexpected Error"
                 }
             )
          }

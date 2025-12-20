@@ -1,42 +1,42 @@
-import { useState , useEffect} from "react";
-import style from './../style/table.module.css';
-import { LoadingSpinner } from "./components.jsx";
-import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "./components.jsx";
-import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../components/components.jsx";
+import { useState , useEffect, useContext} from "react";
+import style from './order.module.css';
+import { LoadingSpinner } from "../components.jsx";
+import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "../components.jsx";
+import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchOrders, updateOrder, deleteOrder, writeOrderNotes, cleanOrder } from "../../../dataProvider/orderProvider/orderSlice.js";
-import { fetchBill } from "../../../dataProvider/billProvider/billSilce.js";
-import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvider.js";
+import { updateOrder, deleteOrder, writeOrderNotes, cleanOrder, fetchOrders } from "../../../../dataProvider/orderProvider/orderSlice.js";
+import { fetchBill } from "../../../../dataProvider/billProvider/billSilce.js";
+
 
 
 // this function needs to have a call back function to perform some necessary  updates to the parent component
 export function Orders() {
-    // need to get bill updated according the ui the order events
-    const {bill, loading} = useSelector((state) => state.bill);
-    const {orders, orderLoading, orderError} = useSelector((state)=> state.order);
+    // Need to get bill updated according the ui the order events
+    const {bill} =  useSelector(s => s.bill);
+    const {orderError } = useSelector(s => s.order);
     const dispatch = useDispatch();
-    
-    useEffect(()=> {
-        if(!bill) return;
-        dispatch(fetchOrders(bill?.id));
-    }, [loading, bill?.id]);
+    const {orders, orderLoading } = useSelector( s => s.order)
+
+    useEffect (() => {
+        if (!bill?.id) return;
+        dispatch(fetchOrders(bill?.id))
+    }, [bill?.id,])
 
     // Override the client name 
     return  <div className={style.ordersContainer}>
         <div className={style.ordersTopContent}>
             <p>{bill?.name}</p>
         </div>
-        { orderLoading ? <LoadingSpinner/>: <div className={style.ordersList}>
+         <div className={style.ordersList}>
                 {
                     orders?.map((order)=> {
                        return <OrderCard 
                             key={order?.id}
-                            value={order}
+                            order={order}
                         />
                     })
                 }
             </div>
-        }
         <div className={style.ordersBottomContainer}>
             <div className={style.titles}>
                 <p>Subtotal</p>
@@ -67,8 +67,7 @@ export function Orders() {
 }
 
 
-function OrderCard({value}) {
-    const [order, setOrder] = useState(value);
+function OrderCard({order}) {
     const [activePopUp, setActivePopUp] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [warningModel, setWarningModel] = useState({ 
@@ -84,13 +83,9 @@ function OrderCard({value}) {
     })
 
 
-    const { bill } = useSelector((state)=> state.bill);
-    const { tables } = useSelector(s => s.tables);
+    const { bill } = useSelector( s => s.bill);
     const dispatch = useDispatch();
 
-
-
-    useEffect(()=> {setOrder(value)},[value]);
     
     const hideWarning = () => {
         setWarningModel({
@@ -139,7 +134,7 @@ function OrderCard({value}) {
         setActivePopUp("");
         try {
             await dispatch(deleteOrder(order?.id)).unwrap();
-            await updateTheTable();
+            await  dispatch(fetchBill(bill?.id)).unwrap();
             setIsProcessing(false);
 
         } catch (error) {
@@ -151,54 +146,37 @@ function OrderCard({value}) {
         
     }
 
-    const updateTheTable =  async () => {
-        // I can get the table id from the bill 
-        // But the bill does not have the table id when it's accesed from the take out section
-        // so we will make a condition
-        const restBill = await dispatch(fetchBill(bill?.id)).unwrap();
-        if (restBill?.data || restBill?.data?.table) {
-            // check if the bill has got no orders any more 
-            if (restBill.data.orders_length === 0) {
-                // remove the bill from the table 
-                const tableId = Number(restBill.data.table);
-                const table = tables.find(t => t.id === tableId);
-               if (!table) return;
-                const billIds =  table.billIds.filter(id => id !== bill?.id);
-                const hasOrders = billIds.length > 0;
-                const countedBills =  billIds.length;
-                // update the table 
-                dispatch(updateTables({...table,
-                     billIds: billIds,
-                    hasOrders: hasOrders,
-                    countedBills: countedBills
-                 }))
-
-            } 
-        }
-
-    };
   
 
     // Overriding the price problem // bill related 
     const overridePrice = (value)=> {
-        dispatch(updateOrder({orderId: order?.id, billId: bill?.id, data:{price: value}}),);
+        dispatch(updateOrder({orderId: order?.id, data:{price: value}}),);
+        dispatch(fetchBill(bill?.id));
         setActivePopUp("");
         
     }
 
     // Overriding the quantity -> bill related 
     const overrideQuantity = async (number) => {
+        setActivePopUp("");
         if (number === order?.quantity) {
-            setActivePopUp("");
             return;
         }
-        dispatch(updateOrder({orderId: order?.id, billId: bill?.id, data: { quantity: number}}));
-        setActivePopUp("");
+        // if the order update went succefully , refetch the bill
+        try {
+
+            await dispatch(updateOrder({orderId: order?.id, data: { quantity: number}})).unwrap();
+            dispatch(fetchBill(bill?.id)).unwrap();
+
+        } catch (err) {
+            console.log(err)
+        }
+
     }
 
 
-    // Hanlde line mark and add condiments functionalities 
-    const getOrderNotes = async (values) => {
+    // Handle line mark and add condiments functionalities 
+    const getOrderNotes =  async (values) => {
         const condiments = Object.values(values).filter(value => value !== "").join("," + '\n');
         if (condiments === "") {
             setActivePopUp("");
@@ -209,9 +187,9 @@ function OrderCard({value}) {
 
         // Send the update to the backend
         const updated = await dispatch(updateOrder({
-            orderId: order?.id, billId: bill?.id,
+            orderId: order?.id, 
             data: {condiments: condiments}
-        })).unwrap();
+            })).unwrap();
 
         // Update the current state after successfully update
         const cleanedOrder = cleanOrder(updated.data);
@@ -271,6 +249,22 @@ function OrderCard({value}) {
             <div className={style.orderCardHeader}>
                 <label htmlFor="orderTime">Ordered:</label>
                 <p> {order.orderedAt} </p>
+                {  order.orderedAt !== order.updatedAt && <div
+                    style={
+                        {
+                            "width": "30%",
+                            "display": "flex",
+                            "gap": "0.5rem"
+
+                        }
+                }
+                    
+                >
+                    <label htmlFor="updateTime">Updated:</label>
+                    <p>{order.updatedAt}</p>
+                </div>
+                }
+                
             </div>
             <div
                 type="submit"
@@ -324,10 +318,9 @@ function OrderCard({value}) {
             />
         } 
         {
-            errorMessageModel.show && <TimeoutErrorMessageIndicator message={errorMeassageModel.message}/>
+            errorMessageModel.show && <TimeoutErrorMessageIndicator message={errorMessageModel.message}/>
         }
       
-     
     </div>
 
 

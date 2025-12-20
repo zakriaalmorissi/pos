@@ -31,6 +31,14 @@ const takeOutBillsSlice = createSlice(
         reducers: {
             addTakeOutBill: (state, action) => {
                 state.takeOutBills.push(action.payload);
+            }, 
+            updateTakeOutBill: (state, action) => {
+                const updatedBill = action.payload;
+                state.takeOutBills = state.takeOutBills
+                .map(bill => bill.id === updatedBill.id ?
+                    updatedBill: bill
+                )
+               
             }
         },
         extraReducers: builder => {
@@ -51,5 +59,5 @@ const takeOutBillsSlice = createSlice(
     }
 )
 
-export const { addTakeOutBill } = takeOutBillsSlice.actions;
+export const { addTakeOutBill, updateTakeOutBill } = takeOutBillsSlice.actions;
 export default takeOutBillsSlice.reducer;

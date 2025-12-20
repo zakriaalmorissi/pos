@@ -1,6 +1,7 @@
 import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import { fetchData, postData,  updateData } from "./../../network/api";
 import { url } from "./../../network/constants";
+import { cleanOrder } from "../orderProvider/orderSlice";
 
 
 // Create a bort controller to avoid late responses that causes memory leak and unwanted results;
@@ -78,6 +79,7 @@ const billSlice = createSlice({
     name: "bill",
     initialState: {
         bill: null,
+        orders: [],
         loading: false, 
         loadingBillError: null, 
         creatingBill: false, 
@@ -86,15 +88,20 @@ const billSlice = createSlice({
         loadingUpdate: false,},
     reducers: {
         clearBill: (state) => {
-            if (state.loading) abortFetchingBill();
+            abortFetchingBill();
             state.bill = null;
             state.loadingBillError = null;
             state.creatingBillError = null;
             state.updateError = null;
+            state.orders = [];
             state.loading = false;
             state.creatingBill = false;
             state.loadingUpdate = false;
         },
+        overrideBill: (state, action) => {
+            state.bill = action.payload;
+            state.orders = action.payload.orders?.map(order => cleanOrder(order)) || [];
+        }
     },
     extraReducers: (builder) => {
         builder.addCase(fetchBill.pending, (state) => {
@@ -104,6 +111,7 @@ const billSlice = createSlice({
         })
         .addCase(fetchBill.fulfilled, (state, action)=> {
             state.bill = action.payload.data;
+            state.orders = action.payload.data.orders?.map(order => cleanOrder(order)) || [];
             state.loading = false;
         })
         .addCase(fetchBill.rejected, (state, action) => {
@@ -136,6 +144,7 @@ const billSlice = createSlice({
         })
         .addCase (updateBill.rejected, (state, action)=> {
             state.updateError = action.error.message
+            console.log(state.updateError)
         })
 
 
@@ -143,7 +152,7 @@ const billSlice = createSlice({
 })
 
 
-export const {clearBill} = billSlice.actions;
+export const {clearBill, overrideBill} = billSlice.actions;
 export default billSlice.reducer;
 
 

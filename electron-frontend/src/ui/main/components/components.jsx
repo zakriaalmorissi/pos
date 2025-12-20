@@ -12,7 +12,7 @@ import {
     MinusSquare,
 } from 'lucide-react'
 import '../style/billComponent.css'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { url } from '../../../network/constants'
 import { fetchData } from '../../../network/api'
 
@@ -162,7 +162,7 @@ export function BillOptions ({
                         <Files size={40}/>
                         <p>Bill viewer</p>
                     </button>
-                    <button>
+                    <button onClick={viodAll}>
                         <Trash2Icon size={40}/>
                         <p>Void All</p>
                     </button>
@@ -433,7 +433,7 @@ export function CondimentsComponent({order,onBack, onSave}) {
 
 export function DiscountComponent({onSubmit, onBack, bill}) {
     // perform the bill discount here 
-    const values = [0, 5, 10, 15, 20, 25, 30];
+    const values = [0, 5, 10, 15, 20, 25, 30, 40];
     // if the bill has discount do some thing
     // provide a customizable discount 
 
@@ -445,6 +445,7 @@ export function DiscountComponent({onSubmit, onBack, bill}) {
                     <StepBackIcon size={40}/>
                     <p>Back</p>
                 </button>
+                {bill?.name && <h3>Client: {bill?.name}</h3>}
             </div>
             <div className='discount-body'>
                 {
@@ -452,6 +453,7 @@ export function DiscountComponent({onSubmit, onBack, bill}) {
                         return <button key={value} onClick={()=> onSubmit(value)}>Discount {value}%</button>
                     })
                 }
+
             </div>
         </div>
     </div>

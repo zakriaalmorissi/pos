@@ -8,13 +8,13 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.request import Request
 
 from accounts.models import CustomUser
+from .service_layer import *
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+
+
 
 
 @api_view(["GET", "POST"])
@@ -102,8 +102,8 @@ def create_table(request: Request, floor_id: int)-> Response:
             return Response({"error": unique_name_error[0]}, status=400)
         return Response({"error": "Invalid data", "message": serializer.errors}, status=400)
 
-     
-
+@authentication_classes([JWTAuthentication])  
+@permission_classes([IsAuthenticated])
 @api_view(['POST', 'GET'])
 def single_table_view(request: Request, id: int) -> Response:
     """"
@@ -137,13 +137,13 @@ def update_table_data(data: dict) -> Response:
 @permission_classes([IsAuthenticated])
 @authentication_classes([JWTAuthentication])
 def occupy_table (request: Request, table_id: int): 
-    table = Table.objects.get(id=table_id)
-    status = table.status
-    if status.strip() == "available":
-        table.status = "occupied"
+    table = Table.objects.filter(id=table_id).first()
+    if table and  table.status.available: 
+        table.status.occupied = True
+        table.status.available = False
+        table.status.save()
         table.user = CustomUser.objects.filter(username = request.user.username).first()
         table.save()
-        send_table_update(table=table)
         send_user_update(user=request.user)
         return Response({"data": "Table status occupied successfully"}, status=200)
     return Response({"error": "Table status alreedy occupied"}, status=400)
@@ -153,45 +153,21 @@ def occupy_table (request: Request, table_id: int):
 @permission_classes([IsAuthenticated])
 @authentication_classes([JWTAuthentication])
 def release_table (request: Request, table_id: int)-> Response:
-    table = Table.objects.get(id=table_id)
-    if table.status == "occupied": 
-        table.status = "available"
+    table = Table.objects.filter(id=table_id).first()
+    if table and  table.status.occupied: 
+        table.status.occupied = False
+        table.status.available = True
+        table.status.save()
         table.user = None
         clean_table_from_empty_bills(table=table)
         table.save()
         send_user_update(user=request.user)
         send_table_update(table=table)
+     
         return Response({"data": "Table status released successfully"}, status=200)
     return Response({"error": "Table status alreedy released"}, status=400)
 
-def clean_table_from_empty_bills(table: Table) -> tuple:
-    """ 
-    Clean the table from empty bill if the user leave the table without any order
-    but what if the user created two bills, one has orders while another doesn't have any orders (empty bill)
-    """
-    if not table.has_orders:
-        return table.bills.all().delete()
-    # Delete only the bills has no orders
-    return table.bills.filter(orders__isnull=True).delete()
 
-def send_table_update(table: Table) -> None:
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "tables",
-        {
-            "type": "table.update",
-            "data": {
-                "id": table.id,
-                "floor": table.floor.id,
-                "name": table.name,
-                "status": table.status, 
-                "has_orders": table.has_orders,
-                "bill_ids": table.bill_ids,
-                "counted_bills": table.counted_bills
-            }
-        }
-    )
-    
 
 @api_view(["DELETE"])
 def delete_table(request: Request, id: int) -> Response:    
@@ -223,6 +199,7 @@ def take_out_bills_view(request:Request):
 def create_bill(request: Request) -> Response:
     data: dict = request.data
     serialize = SerializeBill(data=data)
+    
     if serialize.is_valid():
         serialize.save()
         return Response(serialize.data, status=200)
@@ -247,10 +224,10 @@ def bill_view (request: Request, bill_id: int) -> Response:
 
 def update_bill(request: Request, bill)-> Response: 
     data: dict = request.data
+
     serialize = SerializeBill(bill, data=data, partial=True)
     if serialize.is_valid():
-        serialize.save()        
-        print(data)
+        serialize.save()  
         return Response(serialize.data, status=status.HTTP_200_OK)
     
     return Response({"success": "updated"})
@@ -263,25 +240,21 @@ def orders_view(request:Request, bill_id: int) -> Response:
     serializer = SerializeOrder(orders, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(["GET", "PUT", "DELETE", "POST"])
 def single_order_view(request: Request, order_id:int) -> Response:
     if request.method == "PUT":
         return update_order(request=request, id=order_id)
     
-
     if request.method == "DELETE":
         # Update the bill total price 
         try:
             order =  Order.objects.get(id=request.data.get("id", None))
         except Order.DoesNotExist:
             return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
-        bill = order.bill
         delete = delete_object(request=request, model=Order)
         if delete.status_code == 200:
-            bill.total =  bill.total - order.price
-            bill.save()
             return delete
         return Response({"error":"Unexpected Error"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -304,25 +277,16 @@ def update_order(request: Request, id:int) -> Response:
     # Chick if comdiment already exists in the order or not 
 
     
-    bill = Bill.objects.get(id=get_order.bill.id)
-    
     serialize = SerializeOrder(get_order, data=data, partial=True)
     if serialize.is_valid():
-        # Store the old price 
-        old_price = (get_order.price * get_order.quantity)
-        new_order = serialize.save()
-        # Store the new price
-        new_price  = (new_order.price * new_order.quantity)
-        bill.total = bill.total - old_price + new_price
-        bill.save()
-      
+        serialize.save()
         return Response(serialize.data, status=status.HTTP_200_OK)
     return Response(serialize.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-
-
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(["POST"])
 def create_order(request: Request) -> Response:
     # Update the bill price along with creating the price 
@@ -355,11 +319,7 @@ def create_order(request: Request) -> Response:
     })
     
     if serialize.is_valid():
-        order = serialize.save()
-        # Update the total price of the bill 
-        bill.total = bill.total + order.price * order.quantity
-        bill.save()
-        # Notify the user that the already upd`ated and has got some orders
+        serialize.save()
         if table_id:
             send_table_update(table=table)
         return Response(serialize.data, status=200)
@@ -378,3 +338,8 @@ def delete_object(request: Request, model: any) -> Response:
         return Response({"error": "no object found"}, status=status.HTTP_404_NOT_FOUND)
     return Response({"id": f"{id}"}, status=status.HTTP_200_OK)
 
+
+
+
+    
+    

@@ -1,24 +1,11 @@
 Problems still need to be solved 
 
-
-1. Bill: 
-    a. bill discount functionality
-    b. bill delete all
-    c. Bill viewer 
+Tomorrow's work is : 
+    1. sync bill updates
 
 
 
-2. Order: 
-    a. order fire later and release fire functionality 
-    b. making unique condiments and notes to the order 
-    c. 
 
-3. Table: 
-    1. update the table when deleting all the items inside it 
-
-
-
-/// 1. Improve and fix bugs in admin inteface  -> products and tables creations
-/// 2. Table management -> provide more functionality
-/// 3. Sytstem statics and bill viewer
-/// 4. Bill out Interface 
+1. TransForm Table's bills  bug 
+2. admin Interface
+3. critical fix  --> make abort controller for creating order method  and for the occupying method

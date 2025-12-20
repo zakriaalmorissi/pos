@@ -1,0 +1,33 @@
+.billCardContainer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 14rem;
+    height: 6rem;
+    padding: 0.5rem;
+    background-color: var(--buttons-bg);
+    color: var(--main-colors);
+    border: none;
+    margin: 0.2rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    
+}
+
+.billCardContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 90%;
+    height: 100%;
+}
+
+.billCardContainer:hover {
+    background-color: var(--buttons-hover);
+}
+
+.billCardPrinter:hover {
+    background-color: white;
+    border-radius: var(--border-radius);
+
+}

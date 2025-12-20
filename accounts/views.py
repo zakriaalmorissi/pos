@@ -11,6 +11,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from tables import views
 
 
+
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from tables.models import Floor, Table
 from .models import CustomUser
@@ -62,7 +63,6 @@ def super_admin_or_admin_access(func):
         user: CustomUser = request.user 
         if   user.is_superuser or user.is_admin:
             return func(request, *args, **kwargs)
-        print(user.is_superuser)
         return Response({"error": "You must be a super admin or admin"}, status=status.HTTP_403_FORBIDDEN)
 
     return wrapper
@@ -234,12 +234,16 @@ def manage_user_view(request, username) -> Response:
     if request.data.get("task", None) == "release table":
         user = CustomUser.objects.get(username=username)
         for table in user.user_tables.all():
-           table.user = None
-           table.status = "available"
-           table.save()
+            table.user = None
+            table.status.occupied = False
+            table.status.available = True
+            table.status.save()
+            table.save()
+            views.send_table_update(table=table)
            # Notify the user that his table has been release and fire him out of the table 
         send_release_table(user=user)
         send_user_update(user=user)
+    
         return Response({"data": "Table released Successfully"}, status=status.HTTP_200_OK)
             
     if request.data.pop("task") == "activation":

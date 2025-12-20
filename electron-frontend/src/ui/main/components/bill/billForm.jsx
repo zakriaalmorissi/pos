@@ -1,8 +1,9 @@
 import { useState } from "react";
-import style from '../style/table.module.css';
+import style from './style/createBill.module.css';
+import  {StepBack} from 'lucide-react'
 
 
-export  default function BillForm ({onSubmit}) {
+export  default function BillForm ({onSubmit, onBack}) {
     const [customerName, setCustomerName] = useState('');
     const [numberOfCustomer, setNumberOfCustomer] = useState('');
     
@@ -17,8 +18,15 @@ export  default function BillForm ({onSubmit}) {
 
        return <div className={style.createBillPage}> 
         <div className={style.createBillContainer}>
-            <h2>Create Bill</h2>
-            <p>Enter customer details to create a new bill</p>
+            <div className={style.createBillHeader}>
+                <button 
+                    className={style.backButton}
+                    onClick={onBack}>
+                    <StepBack/>
+                    <p>Back</p>
+                </button>
+                <h2>Create Bill</h2>
+            </div>
             <input
                 type="text"
                 placeholder="Customer Name (optional)"
@@ -31,7 +39,9 @@ export  default function BillForm ({onSubmit}) {
                 value={numberOfCustomer}
                 onChange={(e)=> setNumberOfCustomer(e.target.value)} 
             />
-            <button type="submit" onClick={handleSubmit} >Ok</button>
+            <button 
+                className={style.submitButton}
+                type="submit" onClick={handleSubmit} >Ok</button>
         </div>
     </div>
 }

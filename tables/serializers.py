@@ -1,4 +1,4 @@
-from .models import Table, Floor, Order, Bill
+from .models import Table, Floor, Order, Bill, TableStatus
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from decimal import Decimal
@@ -13,10 +13,19 @@ class SerializeFloor(ModelSerializer):
 
 class SerializeTables(ModelSerializer):
     floor = serializers.PrimaryKeyRelatedField(queryset=Floor.objects.all())# what does this line of code actually do ?
+    bills = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     class Meta:
         model = Table
-        fields = ['id', 'floor','name', 'status', 'counted_bills', 'has_orders', 'bill_ids']
-        
+        fields = ['id', 'floor','name', 'status', 'counted_bills', 'has_orders', 'bills']
+    
+    def get_bills(self, instance: Table):
+        bills = instance.bills.all()
+        return SerializeBill(bills, many=True).data
+    def get_status(self, instance: Table):
+        status = instance.status
+        return _TableStatusSerializer(status).data
+
     # when the do the update  and methods  get called
     def create(self, validated_data: dict)-> Table:
             floor: Floor = validated_data.pop('floor', None)# How deos this get turned into a FLoor instance while i'm expecting an integer value ?
@@ -28,31 +37,35 @@ class SerializeTables(ModelSerializer):
             instance.floor = floor
             
         instance.name = validated_data.get('name', instance.name)
-        instance.status =  validated_data.get('status', instance.status)
         instance.save()    
         return instance
     
+
+class _TableStatusSerializer(ModelSerializer):
+    table = serializers.PrimaryKeyRelatedField(queryset=Table.objects.all())
+    class Meta:
+        model = TableStatus
+        fields = "__all__"
+  
     
     
-    
-# Bill must return a serialized orders 
+#
 class SerializeBill(ModelSerializer):
     """"
     Return Table and orders inform along with the bill info
     
     """
-    #table = serializers.PrimaryKeyRelatedField(queryset=Table.objects.all())
-    orders =  serializers.SerializerMethodField()
+
     orders_length = serializers.SerializerMethodField()
     read_only_discount = serializers.SerializerMethodField()
     final_price = serializers.SerializerMethodField()
-   
+ 
     class Meta:
         model = Bill
         fields = [
 
                 'id','table', 
-                  'name', 'orders',
+                  'name',
                     'orders_length',
                     'is_paid', 'status',
                       'customer_number', 
@@ -66,22 +79,17 @@ class SerializeBill(ModelSerializer):
                       
                 ]
         
-        
-    def get_orders(self, instance: Bill) -> list:
-        orders = instance.orders.all()
-        serialize = SerializeOrder(orders, many=True)
-        return  serialize.data
-    
+   
     def get_final_price(self, instance: Bill) ->  Decimal:
         total = Decimal(instance.total)
         discount = total *  Decimal(instance.discount) / 100
-        return (instance.service_charge + total + instance.tax - discount)
+        return float(instance.service_charge + total + instance.tax - discount)
         
     
     def get_read_only_discount(self, instance: Bill) -> Decimal:
         total = Decimal(instance.total)
         discount = Decimal(instance.discount)
-        return  (total * discount / 100)
+        return  float(total * discount / 100)
     
     def get_orders_length(self, instance:Bill) -> int: 
         # needs improve performance here 
@@ -89,6 +97,7 @@ class SerializeBill(ModelSerializer):
         
     
     def create(self, validated_data)-> Bill:
+
         return Bill.objects.create(**validated_data)
     
     
@@ -108,9 +117,24 @@ class SerializeBill(ModelSerializer):
   
     
 class DetailedSerializeTable(ModelSerializer):
+    floor = serializers.PrimaryKeyRelatedField(queryset=Floor.objects.all())# what does this line of code actually do ?
+    bills = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     class Meta: 
         model = Table
-        fields = ['id', 'name', 'status', 'created_at', 'updated_at', 'bill_ids']
+        fields = ['id', 'floor','name', 'status', 'counted_bills', 'has_orders', 'bills']
+
+
+      
+    def get_bills(self, instance: Table):
+        bills = instance.bills.all()
+        return SerializeBill(bills, many=True).data
+    
+    def get_status(self, instance: Table):
+        status = instance.status
+        return _TableStatusSerializer(status).data
+
+
         
 
     def create(self, validated_data: dict) -> Table:
@@ -124,7 +148,6 @@ class DetailedSerializeTable(ModelSerializer):
             instance.floor = floor
         
         instance.name = validated_data.get('name', instance.name)
-        instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
         

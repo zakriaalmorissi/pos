@@ -17,13 +17,14 @@ export const fetchTables = createAsyncThunk(
 
 
 export const cleanTable = (table) => {
+  console.log(table)
   return {
     id: table.id,
     name: table.name,
     floorId: table.floor,
     status: table.status,
     countedBills: table.counted_bills ,
-    billIds: table.bill_ids || [],
+    bills: table.bills || [],
     hasOrders: table.has_orders
   }
 }

@@ -1,8 +1,8 @@
 import { Table, Printer, User, RefreshCcw } from "lucide-react"
 import style from './../style/table.module.css';
 import { useContext, useState } from "react";
-import { TableContext } from "../provider/provider";
-import { NumericKeyBoard } from "../components/components";
+import { TableContext } from "../provider/provider.jsx";
+import { NumericKeyBoard } from "../components/components.jsx";
 import { TimeoutErrorMessageIndicator } from "../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import { updateBill } from "../../../dataProvider/billProvider/billSilce.js";
@@ -65,9 +65,6 @@ export function Header ({tableName}) {
                 title={"Table Customers"}
         
         />}
-        {
-            updateError && <TimeoutErrorMessageIndicator message={updateError?.message}/>
-        }
         </div>
     )
 }

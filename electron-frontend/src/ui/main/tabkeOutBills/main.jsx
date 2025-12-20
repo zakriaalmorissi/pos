@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import style from '../style/bills.module.css';
 import { StepBackIcon} from 'lucide-react'
 import { Link, useNavigate } from "react-router-dom";
-import  BillForm  from "../components/billForm";
+import  BillForm  from "../components/bill/billForm";
 import { useDispatch, useSelector } from "react-redux";
 import { createBill } from "../../../dataProvider/billProvider/billSilce";
 import { addTakeOutBill } from "../../../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
 import { TimeoutErrorMessageIndicator } from "../../components/components";
 
+import BillCard from "../components/bill/BillCard";
 
 
 export function BillsHome({}) {
@@ -31,11 +32,25 @@ export function BillsHome({}) {
        
     }
 
+    const onCreateBillBack = () => {
+         setDisplayBillForm(false);
+
+    }
+
+    const onBillPress = (bill) => {
+        navigate(`/singleBill/${bill?.id}`);
+
+    }
+
    
 
     return  displayBillForm? <div className={style.billFormContainer}>
         {createBillErorr && <TimeoutErrorMessageIndicator message={createBillErorr}/>}
-        <BillForm onSubmit={onCreateBill}/>
+        <BillForm 
+            onSubmit={onCreateBill}
+            onBack={onCreateBillBack}
+            
+        />
     </div> :
      <div className={style.billsHome}>
         <div className={style.billsHomeHeader}>
@@ -52,19 +67,10 @@ export function BillsHome({}) {
             </button>
             {
                 takeOutBills.map((bill)=> {
-                    return <Link 
-                        key={bill.id}
-                        className={style.singleBillContainer}
-                        to={`/singleBill/${bill.id}`}
-                        > 
-                        <p>Ref: {bill.id}</p>
-                        <p>Client: {bill.name}</p>
-                    </Link>
+                    return <BillCard key={bill.id} bill={bill} onPress={onBillPress}/>
                 })
             }
         </div>
-
-
 
     </div>
 

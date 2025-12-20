@@ -1,0 +1,134 @@
+.mainBillContainer {
+    display: flex;
+    flex-direction: column;
+    height: 95%;
+}
+
+.billContainer {
+    display: flex;
+    flex-direction: row;
+    height: 90vh;
+    background-color: var(--main-bgs);
+
+}
+
+
+
+
+.billSideContainer {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--secondary-colors);
+    width: fit-content;
+}
+
+.sideDevContents {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(14, 130, 240); color: white;
+    height: 75%; width: 100%;
+}
+
+.sideDevContents button {
+    border: none;
+    border-top: 1.4px solid white;
+    border-bottom: 1.4px solid white;
+    height: 4rem; width: 3rem;
+    background-color: rgb(14, 130, 240); color: white;
+}
+
+
+.billBottomDev {
+    display: flex;
+    height: 9vh;
+    justify-content:flex-start;
+    align-content: center;
+    margin-left: 3rem;
+    width: 30%;
+
+
+}
+
+.billBottomDev button:hover {
+    background-color: var(--buttons-hover);
+}
+.paymentButton {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 23.1rem;
+    background-color: #7ebbf5 ;
+    color: var(--main-colors);
+    font-size: large;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border: none;
+}
+
+.completeButton {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+    width: 12rem;
+    border: none;
+    background-color: var(--buttons-bg);
+    color: var(--main-colors);
+    font-size: large;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+
+
+
+
+
+/* Style Menu  -------------------------------------------------------------------------------*/
+.foodContainer {
+    display: flex;
+    border-left: 2px solid rgb(255, 255, 255);
+    width: 70%;
+    background-color: var(--secondary-colors);
+}
+
+
+
+.categories {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    padding: 0.2rem;
+
+}
+
+.categories button {
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    height: 5rem;
+    cursor: pointer;
+    border: none;
+}
+
+.itemsContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.foodAndDrinkContainer {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    row-gap: .2rem;
+    column-gap: 0.2rem;
+    align-items: start;
+    padding: 0.5rem;
+    height: fit-content;
+
+}
+
+.foodAndDrinkContainer button {
+    cursor: pointer;
+    border: none;
+}
+

@@ -2,12 +2,13 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from accounts.models import CustomUser
-
+from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
 # Create your models here.
 
 
-# orders models 
-# tables models 
+# Orders models 
+# Tables models 
 
 class Floor(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -19,11 +20,6 @@ class Table(models.Model):
     floor = models.ForeignKey(Floor, on_delete=models.CASCADE, related_name="tables")
     name = models.CharField(max_length=15, unique=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="user_tables", blank=True, null=True)
-    status = models.CharField(max_length=30, choices={
-        "available": "Available",
-        "occupied": "Occupied"},
-        default= "available"
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -31,11 +27,6 @@ class Table(models.Model):
     
     def __str__(self)-> str:
         return f"order: {self.name}, floor: {self.floor.name}"
-    
-    
-    @property
-    def bill_ids(self) -> list:
-        return list(self.bills.values_list('id', flat=True))
     
     
     @property
@@ -48,23 +39,37 @@ class Table(models.Model):
 
 
 
+class TableStatus(models.Model):
+    table = models.OneToOneField(Table, on_delete=models.CASCADE, related_name="status")
+    available = models.BooleanField(default=True)
+    occupied = models.BooleanField(default=False)
+    busy = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self) -> str: 
+        return f"{self.table.name}, available: {self.available}"
+
+
 class Bill(models.Model):
+    BILL_STATUS_CHOICES = (
+        ("pending", "Pending"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
+    )
+
     name = models.CharField(max_length=30, blank=True)
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name="bills", blank=True, null=True)
     is_paid = models.BooleanField(default=False)
-    status = models.CharField(max_length=30, choices={
-        'pedning': "Pending",
-        'completed': "Completed",
-        'cancelled': "Cancelled"
-    },
+    status = models.CharField(max_length=30, choices = BILL_STATUS_CHOICES,
     default="pending"
     )
     customer_number = models.PositiveIntegerField(default=0)
     discount = models.DecimalField(max_digits=10, default=00.00, decimal_places=2)
-    total = models.DecimalField(max_digits=11,default=00.0, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    total = models.DecimalField(max_digits=11, default=0.00, decimal_places=2)
+
     def __str__(self) -> str:
         return f"name: {self.name}, table: {self.table.name}"
     
@@ -82,6 +87,7 @@ class Bill(models.Model):
     @property 
     def tax(self) ->  Decimal: 
         return Decimal(self.total * 1 / 100)
+    
 
 
 def validate_positive(value):
@@ -111,3 +117,19 @@ class Order(models.Model):
  
  
            
+# Helper function for the bill total 
+def update_bill_total(bill: Bill) -> None:
+    if bill is not None: 
+        total = sum(order.total_price for order in bill.orders.all())
+        bill.total = total
+        bill.save(update_fields=["total", "updated_at"])
+
+
+@receiver (post_save, sender=Order)
+def update_bill_when_order_saved(sender, instance: Order, **kwargs):
+    update_bill_total(instance.bill)
+
+
+@receiver(post_delete, sender=Order)
+def update_bill_on_order_delete(sender, instance: Order, **kwargs):
+    update_bill_total(instance.bill)

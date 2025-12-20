@@ -4,17 +4,21 @@ const os = require('os');
 
 function createWindow() {
   const win = new BrowserWindow({
+
     width: 800,
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      enableRemoteModule: false,
-      nodeIntegration: false
+      nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: true,
+      webviewTag: true,
+    // Enable touch supporta
+    touchSupport: true,
     },
   });
 
-  win.loadURL('http://localhost:5173'); // Vite default
+  win.loadURL('http://localhost:5173/pos'); // Vite default
 }
 
 app.whenReady().then(() => {
