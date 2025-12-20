@@ -31,7 +31,6 @@ def floors_view(request: Request) -> Response:
     floors = Floor.objects.all()
     serialize = SerializeFloor(floors, many=True)
 
-    
     return Response(serialize.data, status=200)
 
 def validate_and_create_floor(data: dict) -> Response:
@@ -60,7 +59,7 @@ def validate_and_create_floor(data: dict) -> Response:
 @authentication_classes([JWTAuthentication])
 def all_tables_view(request: Request) -> Response:
     """""
-    Return Tables related To the targeted floor 
+    Return All Tables  
     """
     # filtering the table by the id floor 
     tables = Table.objects.all()
@@ -132,40 +131,6 @@ def update_table_data(data: dict) -> Response:
 
 
 
-# Real time updates
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@authentication_classes([JWTAuthentication])
-def occupy_table (request: Request, table_id: int): 
-    table = Table.objects.filter(id=table_id).first()
-    if table and  table.status.available: 
-        table.status.occupied = True
-        table.status.available = False
-        table.status.save()
-        table.user = CustomUser.objects.filter(username = request.user.username).first()
-        table.save()
-        send_user_update(user=request.user)
-        return Response({"data": "Table status occupied successfully"}, status=200)
-    return Response({"error": "Table status alreedy occupied"}, status=400)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@authentication_classes([JWTAuthentication])
-def release_table (request: Request, table_id: int)-> Response:
-    table = Table.objects.filter(id=table_id).first()
-    if table and  table.status.occupied: 
-        table.status.occupied = False
-        table.status.available = True
-        table.status.save()
-        table.user = None
-        clean_table_from_empty_bills(table=table)
-        table.save()
-        send_user_update(user=request.user)
-        send_table_update(table=table)
-     
-        return Response({"data": "Table status released successfully"}, status=200)
-    return Response({"error": "Table status alreedy released"}, status=400)
 
 
 

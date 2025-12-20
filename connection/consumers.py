@@ -2,6 +2,8 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 import json
 from tables.models import Table, TableStatus
+from accounts.models import CustomUser
+from accounts.views import send_user_update
 from decimal import Decimal
 
 def make_json_safe(data):
@@ -72,6 +74,9 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                     "type": "table.update", "data": saved_table
                 }
             )
+            # Send the occupy update to the admin dashboard 
+            await  self.send_table_update_to_admin()
+
         
 
     async def release_table(self, data): 
@@ -91,7 +96,41 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                     "type": "table.update", "data": saved_table
                 }
             )
-  
+            # Send this release update to the admin management dashboard
+            await self.send_table_update_to_admin()
+        
+
+    async def send_table_update_to_admin(self) -> None:
+        """
+         This is gonna get the user data with its updated tables and  send them to the admins dashboard 
+
+        """
+        user: dict = await self.get_user()
+        await self.channel_layer.group_send(
+                "users", 
+                {
+                    "type": "user_update",
+                    "data": user
+                }    
+        )
+
+    @database_sync_to_async
+    def get_user(self) -> dict:
+        user: CustomUser = self.scope["user"]
+        data = {
+                'id': user.pk,
+                'name': user.name,
+                'username': user.username,
+                'device': user.device,
+                'is_superuser': user.is_superuser,
+                'is_admin': user.is_admin,
+                'is_staff': user.is_staff,
+                'has_tables': user.has_tables,
+                'user_table': user.user_table
+        }
+
+        return data
+
 
     @database_sync_to_async
     def save_table(self, table):
