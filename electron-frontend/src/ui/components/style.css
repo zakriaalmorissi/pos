@@ -180,7 +180,7 @@
 .timeout-message-body {
     display: flex;
     align-items: center;
-    width: fit-content;
+    width: max-content;
     height: 100%;
     color: rgb(47, 50, 228);
     padding: 0.5rem;

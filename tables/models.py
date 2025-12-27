@@ -41,9 +41,15 @@ class Table(models.Model):
 
 class TableStatus(models.Model):
     table = models.OneToOneField(Table, on_delete=models.CASCADE, related_name="status")
-    available = models.BooleanField(default=True)
-    occupied = models.BooleanField(default=False)
-    busy = models.BooleanField(default=False)
+    status = models.CharField(choices=[
+    ("available", "Available"),
+    ("occupied", "Occupied"),
+    ("busy", "Busy"),
+    ],
+    max_length=23,
+    default= "available")
+
+    note = models.TextField(blank=True,)
     date = models.DateTimeField(auto_now=True)
 
 

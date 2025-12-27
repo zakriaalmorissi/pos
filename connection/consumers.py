@@ -41,6 +41,8 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                     await self.occupy_table(data=data)
                 if action == "release":
                     await self.release_table(data=data)
+                if action == "busy":
+                    await self.mark_table_as_busy(data=data)
         except json.JSONDecodeError as e:
             print(e)
 
@@ -48,25 +50,18 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json(event["data"])
 
 
-    # Helper function to retrieve the table
-    @database_sync_to_async
-    def get_table(self, pk):
-        return Table.objects.filter(id=pk).first()
-    
-    @database_sync_to_async
-    def get_table_status(self, table_id) -> TableStatus:
-        status =  TableStatus.objects.filter(table = table_id).first()
-        return status
+
 
     async def occupy_table(self, data: dict):
         pk = data.get('id')
         table = await self.get_table(pk)
-        if table:
-            table_status = await self.get_table_status(table_id=table.id)
-            table_status.available = False
-            table_status.occupied = True
+        table_status = await self.get_table_status(table.id)
+        user =  self.scope["user"]
+        if table and table_status:
+            table_status.status = "occupied"
+            table_status.note = f"Table is Occupied by {user.username}"
             await self.save_table_status(table_status)
-            table.user = self.scope['user']
+            table.user = user
             saved_table = await self.save_table(table=table)
             await self.channel_layer.group_send(
                 "tables",
@@ -81,11 +76,11 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
 
     async def release_table(self, data): 
         pk = data.get("id")
-        table = await self.get_table(pk)
-        if table: 
-            table_status = await self.get_table_status(table_id=table.id)
-            table_status.available = True
-            table_status.occupied = False
+        table: Table = await self.get_table(pk)
+        table_status: TableStatus = await self.get_table_status(table.id)
+        if table and table_status: 
+            table_status.status = "available"
+            table_status.note = ""
             await self.save_table_status(table_status)
             table.user = None
             await  self.delete_empty_table_bill(table=table)
@@ -98,6 +93,30 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
             )
             # Send this release update to the admin management dashboard
             await self.send_table_update_to_admin()
+    
+
+    async def mark_table_as_busy(self, data: dict):
+        pk: int = data.get("id")
+        table: Table = await self.get_table(pk)
+        table_status: TableStatus = await self.get_table_status(table.pk)
+        if table and table_status:
+            table_status.status = "busy"
+            table_status.note = data.get("note", "")
+            await self.save_table_status(table_status)
+            table.user = None
+            await  self.delete_empty_table_bill(table=table)
+            saved_table = await self.save_table(table=table)
+            await self.channel_layer.group_send(
+                "tables",
+                {
+                    "type": "table.update", "data": saved_table
+                }
+            )
+            # Send this release update to the admin management dashboard
+            await self.send_table_update_to_admin()
+
+        
+
         
 
     async def send_table_update_to_admin(self) -> None:
@@ -114,6 +133,16 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                 }    
         )
 
+        # Helper function to retrieve the table
+    @database_sync_to_async
+    def get_table(self, pk) -> Table:
+        return Table.objects.filter(id=pk).first()
+    
+    @database_sync_to_async
+    def get_table_status(self, table_id) -> TableStatus:
+        status =  TableStatus.objects.filter(table = table_id).first()
+        return status
+
     @database_sync_to_async
     def get_user(self) -> dict:
         user: CustomUser = self.scope["user"]
@@ -128,7 +157,6 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                 'has_tables': user.has_tables,
                 'user_table': user.user_table
         }
-
         return data
 
 

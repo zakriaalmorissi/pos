@@ -97,6 +97,7 @@ export function TimeoutErrorMessageIndicator ({message}) {
 export function TimeoutMessageIndicator ({
     message,
     timer,
+    resetState,
     position, 
     backgroundColor,
      
@@ -107,6 +108,7 @@ export function TimeoutMessageIndicator ({
         if (timer === "infinite") return;
         const time = setTimeout(()=> {
             setShow(false)
+            resetState()
         }, timer? timer: 3500 );
 
         return () => {

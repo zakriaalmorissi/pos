@@ -29,10 +29,6 @@ class Migration(migrations.Migration):
             name='TableStatus',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('available', models.BooleanField(default=True)),
-                ('occupied', models.BooleanField(default=False)),
-                ('busy', models.BooleanField(default=False)),
-                ('date', models.DateTimeField(auto_now=True)),
                 ('table', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='status', to='tables.table')),
             ],
         ),

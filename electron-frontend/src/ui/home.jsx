@@ -10,6 +10,7 @@ import {
   Laptop2,
   ScrollText,
   ShoppingBasket,
+  Tangent,
   User,
   Wifi,
   XCircleIcon,
@@ -264,10 +265,37 @@ export function Home() {
 
 
 function TablesComponent ({tables, isNavigateTables, getClickedTable }) {
+  const [timerMessage, setTimerMessage] = useState({
+    show: false,
+    message: ""
+  })
+
+  const notifyUser = (table) => {
+     setTimerMessage({
+      show: true,
+      message: table.status.note
+     })
+  }
+
   return  <div className={style.devMainTables}>
             {tables.map((table) => (
-              <TableCard key={table.id} table={table} isNavigate={isNavigateTables} onClicked={getClickedTable} />
+              <TableCard key={table.id} table={table}
+                 isNavigate={isNavigateTables}
+                  onClicked={getClickedTable} 
+                  notifyUser={notifyUser}
+                  
+                  />
             ))}
+
+          {
+            timerMessage.show && <TimeoutMessageIndicator message={timerMessage.message} timer={3000} 
+            resetState = {() => {
+              setTimerMessage({
+                show: false, 
+                message: ""
+              })
+            }}/>
+          }
           </div>
 }
 
@@ -290,7 +318,7 @@ function SelecTabletMode ({tables, getClickedTable}) {
 
 
 // ---------------------- Table component ----------------------
-function TableCard({ table, isNavigate, onClicked }) {
+function TableCard({ table, isNavigate, onClicked, notifyUser }) {
   const isClicked = useRef(false);
 
   useEffect(() => {
@@ -304,10 +332,12 @@ function TableCard({ table, isNavigate, onClicked }) {
   
   };
 
+
+
   
   const className = `
         ${style.singleTable}
-        ${table.status.occupied
+        ${table.status.status === "occupied"
           ? style["occupied"]
           : table.hasOrders
               ? style.hasOrders
@@ -316,10 +346,15 @@ function TableCard({ table, isNavigate, onClicked }) {
     `;
 
   // If the table is occupied → just show the box with no click actions
-  if (table.status.occupied) {
+  if (table.status.status === "occupied") {
     return (
       <div className={style.singleTableContainer}>
-        <div className={className}>{table.name}</div>
+        <button 
+          className={className}
+          onClick={()=> notifyUser(table)}
+          >
+           {table.name}
+        </button>
       </div>
     );
   }
@@ -364,5 +399,6 @@ function TableCard({ table, isNavigate, onClicked }) {
           {table.name}
         </button>
   </div>
+
   );
 }
