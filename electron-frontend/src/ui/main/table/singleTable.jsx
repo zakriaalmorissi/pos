@@ -1,4 +1,4 @@
-import { useParams} from "react-router-dom";
+import { useLocation, useParams} from "react-router-dom";
 import { useState, useEffect, useContext} from "react";
 import style from './../style/table.module.css';
 import { TableProvider, TableContext} from "../provider/provider.jsx"
@@ -17,19 +17,10 @@ import {  useTableWebSocket, usetableWebSocketReleasingListener } from "./tableA
 
 
 export default function SingleTable() {
-    const { id } = useParams();
-    const tableId = Number(id);
-    const {tables} = useSelector(s => s.tables);
-    const [table, setTable] = useState(null);
- 
-
-
-    useEffect(()=> {
-        const foundTable = tables.find(t=> t.id === tableId);
-        setTable(foundTable || null);
-        
-    }, [id, tables]);
+    const location = useLocation();
+    const table = location.state?.table;
     if (!table) {
+        // load the table 
         return <LoadingSpinner/>
     }
 

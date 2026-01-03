@@ -10,22 +10,21 @@ import {
   Laptop2,
   ScrollText,
   ShoppingBasket,
-  Tangent,
   User,
   Wifi,
   XCircleIcon,
 } from 'lucide-react';
-import { ProcessingIndicator, TimeoutErrorMessageIndicator, TimeoutMessageIndicator} from './components/components.jsx';
+import { ProcessingIndicator, TimeoutMessageIndicator} from './components/components.jsx';
 import { useDispatch, useSelector } from 'react-redux';
 import {  updateTables } from '../dataProvider/tablesProvider/tablesProvider.js';
 
 
 
 // ---------------------- Home (main UI) ----------------------
+
 export function Home() {
-  const { tables } = useSelector((state) => state.tables);
+  const { floors } = useSelector((state) => state.floors);
   const [currentTables, setCurrentTables] = useState([]);
-  const [floors, setFloors] = useState([]);
   const [fetchingError, setFetchingError] = useState(null);
   const [isNavigateTables, setIsNavigateTables] = useState(true);
 
@@ -39,35 +38,25 @@ export function Home() {
   const [displayMenu, setDisplayMenu] = useState(false);
 
   // Get the floors data
-  useEffect(() => {
-    fetchData(`${url}api/floors/`, {
-      getData: (response) => {
-        setFloors(response.data);
-        setFetchingError(null);
-      },
-      apiError: (error) => {
-      
-        setFetchingError(`Failed to fetch data due to ${error.status}`);
-      
-      },
-    });
-  }, []);
 
   const fetchRelatedTables = (floorId) => {
     // Store the last fetched floor
     window.localStorage.setItem('floorId', floorId);
-    const tbles = tables.filter((table) => table.floorId === floorId);
-    setCurrentTables(tbles);
+    const floor = floors.filter((floor) => floor.id === floorId);
+    setCurrentTables(floor[0].tables);
   };
 
   useEffect(() => {
     const getLastFecthedFloor = window.localStorage.getItem('floorId');
     if (getLastFecthedFloor) {
-      setCurrentTables(tables.filter((table) => table.floorId === parseInt(getLastFecthedFloor, 10)));
+      setCurrentTables(floors.filter((floor) => floor.floorId === parseInt(getLastFecthedFloor, 10)).tables|| []);
     } else {
-      setCurrentTables(tables.filter((table) => table.floorId === 1));
+      setCurrentTables(floors.tables?.filter((table) => table.floorId === 1)|| []);
     }
-  }, [floors, tables, dispatch]);
+  }, [floors, dispatch]);
+
+
+
 
   const swichTransFormBillMode = () => {
     setFirstPressedTable(null);
@@ -278,7 +267,7 @@ function TablesComponent ({tables, isNavigateTables, getClickedTable }) {
   }
 
   return  <div className={style.devMainTables}>
-            {tables.map((table) => (
+            {tables?.map((table) => (
               <TableCard key={table.id} table={table}
                  isNavigate={isNavigateTables}
                   onClicked={getClickedTable} 
@@ -304,13 +293,13 @@ function SelecTabletMode ({tables, getClickedTable}) {
   return <div className={style.devMainTables}
       style={
         {
-          padding: '10%'
+          padding: '5%'
         }
       }
   >
       <TimeoutMessageIndicator  message={"Select  a blue table"}  timer={"infinite"} />
       {
-        tables.map((table) => <TableCard  table={table} onClicked={getClickedTable} isNavigate={false} />)
+        tables?.map((table) => <TableCard  table={table} onClicked={getClickedTable} isNavigate={false} />)
       }
   </div>
 
@@ -323,7 +312,6 @@ function TableCard({ table, isNavigate, onClicked, notifyUser }) {
 
   useEffect(() => {
     isClicked.current = false;
-    
   }, [table?.id, isNavigate]);
 
   const handleOnClick = (tableId) => {
@@ -366,7 +354,12 @@ function TableCard({ table, isNavigate, onClicked, notifyUser }) {
         {table.countedBills > 1 && (
           <p className={style.countedBills}>{table.countedBills}</p>
         )}
-        <Link className={className} to={`/home/singleTable/${table.id}`}>
+        <Link className={className} to={`/home/singleTable/${table.id}`}
+          state={
+            // Send table data instead of refecthing 
+            {table: table}
+          }
+        >
           {table.name}
         </Link>
       </div>

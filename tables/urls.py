@@ -6,7 +6,6 @@ from . import views
 app_name = "tables"
 urlpatterns = [
     path(route='floors/', view=views.floors_view),
-    path(route="all-tables/", view=views.all_tables_view),
     path(route="tables/<int:floor_id>/", view=views.tables_view,),
     path(route="create_table/<int:floor_id>/", view=views.create_table ),
     path(route='table/<int:id>/', view=views.single_table_view),

@@ -4,10 +4,10 @@ import { url } from "./../../network/constants";
 
 // Async thunk to fetch system data
 export const fetchTables = createAsyncThunk(
-  "tables/fetchTables",
+  "floors/fetchTables",
   async () => {
     return new Promise((resolve, reject) => {
-      fetchData(`${url}api/all-tables/`, {
+      fetchData(`${url}api/floors/`, {
         getData: (res) => resolve(res),
         apiError: (err) => reject(err),
       });
@@ -17,7 +17,6 @@ export const fetchTables = createAsyncThunk(
 
 
 export const cleanTable = (table) => {
-  console.log(table)
   return {
     id: table.id,
     name: table.name,
@@ -30,9 +29,12 @@ export const cleanTable = (table) => {
 }
 
 
+
+
 const tablesSlice = createSlice({
-    name: "tables",
+    name: "floors",
     initialState: {
+        floors: [],
         tables: [],
         loadingTables: false,
         loadingTablesError: null,
@@ -40,12 +42,16 @@ const tablesSlice = createSlice({
     reducers: {
       updateTables: (state, action) => {
         const updatedTable = action.payload;
-        const idx = state.tables.findIndex((t) => t.id === updatedTable.id);
-        if (idx !== -1) {
-          state.tables[idx] = { ...state.tables[idx], ...updatedTable };
-        } else {
-          state.tables.push(updatedTable);
-      }
+        for (const floor of state.floors) {
+          const idx = floor.tables.findIndex(t => t.id === updatedTable.id);
+          if (idx !== -1) {
+            floor.tables[idx] = {
+              ...floor.tables[idx],
+              ...updatedTable,
+            };
+            return;
+          }
+        }
     },
 
     }, 
@@ -55,7 +61,12 @@ const tablesSlice = createSlice({
 
         })
         .addCase(fetchTables.fulfilled, (state, action)=> {
-            state.tables = action.payload.data.map((table)=> cleanTable(table));
+            state.floors = action.payload.data?.map(floor => ({
+                ...floor, tables: 
+                floor.tables.map((table) => cleanTable(table))
+              })
+            )
+        
             state.loadingTables = false;
             state.loadingTablesError = null;
     
@@ -67,6 +78,6 @@ const tablesSlice = createSlice({
     }
 })
 
-
+    
 export const {updateTables} = tablesSlice.actions;
 export default tablesSlice.reducer;

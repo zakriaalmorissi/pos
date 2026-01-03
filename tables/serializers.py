@@ -5,9 +5,15 @@ from decimal import Decimal
 
 
 class SerializeFloor(ModelSerializer):
+    tables = serializers.SerializerMethodField()
     class Meta:
         model = Floor
-        fields = ['id','name']
+        fields = ['id','name', 'tables']
+
+    def get_tables(self, obj: Floor) -> list: 
+        tables = obj.tables.all()
+        return SerializeTables(tables, many=True).data
+
         
 
 
@@ -93,11 +99,14 @@ class SerializeBill(ModelSerializer):
     
     def get_orders_length(self, instance:Bill) -> int: 
         # needs improve performance here 
-        return len(instance.orders.all())
+        orders:list = instance.orders.all()
+        length: int = 0
+        for order in orders: 
+            length += order.quantity 
+        return length
         
     
     def create(self, validated_data)-> Bill:
-
         return Bill.objects.create(**validated_data)
     
     

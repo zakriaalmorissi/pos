@@ -22,7 +22,9 @@ from .service_layer import *
 @authentication_classes([JWTAuthentication])
 def floors_view(request: Request) -> Response:
     """"
-    Return all values and handle floor creations
+       1.Retrun all floors with their tables 
+       2. handle floors creation, updating and deleting 
+       3. 
     """
     if request.method == "POST":
         data: dict = request.data
@@ -51,20 +53,6 @@ def validate_and_create_floor(data: dict) -> Response:
     return Response({"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
     
     
-
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-@authentication_classes([JWTAuthentication])
-def all_tables_view(request: Request) -> Response:
-    """""
-    Return All Tables  
-    """
-    # filtering the table by the id floor 
-    tables = Table.objects.all()
-    serialize = SerializeTables(tables, many=True)
-    return Response(serialize.data)
 
 
 
@@ -239,7 +227,6 @@ def update_order(request: Request, id:int) -> Response:
     if (condiments):
         condiments += get_order.condiments 
         data['condiments'] = condiments
-    # Chick if comdiment already exists in the order or not 
 
     
     serialize = SerializeOrder(get_order, data=data, partial=True)

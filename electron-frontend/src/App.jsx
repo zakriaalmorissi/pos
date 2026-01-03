@@ -15,21 +15,23 @@ import AppRoutes from './routes/routes';
 
 
 function App () {
-  const {errorMessage, isLoading} = useInitializeData();
+  const {state, message} = useInitializeData();
   const { socketError } = useWebSocketTables();
   
 
     
-    if (isLoading || errorMessage) {
+    if (state !== "READY") {
         return <ProcessingIndicator 
-          isLoading={isLoading}
-          message={errorMessage}
+          isLoading={state !== "READY"}
+          action={message}
+          errorMessage={state === "ERROR"? message: null}
           buttonLabel={"Reload"}
           onIgnore={()=> {
             // Do some logic, like reloading the data or quiting the system
              window.location.reload()
 
           }}
+          // Provide more options 
         
         />
     }
@@ -42,37 +44,49 @@ function App () {
 }
 
 function useInitializeData () {
-  const { loadingSystemData } = useSelector(
-    (state) => state.system
-  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [isAuthenticating, setIsAuthenticating] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [launchingState, setLaunchingState] = useState({
+    state: "INIT",
+    message: null,
+    
+  })
 
   // Fetch the system data 
   useEffect(()=> {
     // First step load the system data to get the most essential data 
-     loadSystemData();
-  }, [dispatch]);
-
-  const loadSystemData = async () => {
+    const start = async () => {
+    setLaunchingState({
+      state: "SYSTEM",
+      message: "Loading System Configurations"
+    })
     try {
       await dispatch(fetchSystem()).unwrap();
-
+      setLaunchingState({
+        state: "AUTH",
+        message: "Authentication..."
+      })
     } catch(err) {
-      setErrorMessage(`Failed to load system data "${err.message}"`)
+      setLaunchingState({
+        state: "ERROR",
+        message:`Failed to load system data "${err.message}"`
+      })
     }
   }
+    // Start ...
+    start();
+      
+  }, [dispatch]);
+
+
 
 
   // Authenticate the user 
   useEffect(()=> {
     // Wait till system data are loaded
-    if (loadingSystemData) return ;
+    if (launchingState.state !== "AUTH") return;
     refreshUserTokens();
-  }, [loadingSystemData])
+  }, [launchingState])
 
   const refreshUserTokens = async () => {
     // Get the acess token
@@ -88,10 +102,15 @@ function useInitializeData () {
         getResponse: (response) => {
           if (response.status === 'ok') {
             window.localStorage.setItem('accessToken', response.data.access);
-            setIsAuthenticating(false);
+            setLaunchingState({
+              state: "LOAD_DATA",
+              message: "Loading ..."
+            })
           } else {
-            setIsLoading(false);
-            console.log(response)
+            setLaunchingState({
+              state: "ERROR",
+              message: "Failed to authenticate the user"
+            })
             navigate('/login'); 
           }
         },
@@ -102,48 +121,78 @@ function useInitializeData () {
   // Fetch other data after authentication
   useEffect(()=> {
     // Wait till loading system data and authenication process finished
-    if (loadingSystemData || isAuthenticating) return;
+    if (launchingState.state !== "LOAD_DATA") return;
     loadTables();
     loadMenu();
     loadTakeOutBills();
+  }, [launchingState, dispatch]);
 
-  }, [loadingSystemData, dispatch, isAuthenticating]);
+
 
   // Load Tables data
   const loadTables = async () => {
+    setLaunchingState(prev => ({
+        ... prev, 
+        message: "Loading Tables"
+      }))
     try {
-      
       await dispatch(fetchTables()).unwrap();
 
     } catch (err) {
-      setErrorMessage(err.message);
+      setLaunchingState({
+        state: "ERROR",
+        message: `Failed to load Tables due to ${err.message}`
+      })
+    
     }
   }
   // Load menu data
   const loadMenu = async () => {
+    // Indicate loading status
+      setLaunchingState(prev => ({
+        ... prev, 
+        message: "Loading Menu"
+      }))
+
+
     try {
       await dispatch(fetchMenu()).unwrap();
 
     } catch (err) {
-      setErrorMessage(`Failed to load menue due to ${err.message}`);
+      setLaunchingState({
+        state: "ERROR",
+        message: `Failed to load menu due to ${err.message}`
+      })
     }
   }
 
 
   // Load take out bills 
   const loadTakeOutBills = async () => {
+    setLaunchingState(prev => ({
+        ... prev, 
+        message: "Loading Bills"
+      }))
     try {
       await dispatch(fetchTakeOutBills()).unwrap();
-      setIsLoading(false);
+      setLaunchingState({
+        state: "READY",
+        message: null,
+      })
 
     } catch (err) {
-      setErrorMessage(`Failed to load take out bills --> ${err.message}`)
+      setLaunchingState({
+        state: "ERROR",
+        message: `Failed to load bills due to ${err.message}`
+      })
+      
+
     } 
  
   }
 
 
-  return { errorMessage, isLoading};
+  return launchingState;
 
 
 }

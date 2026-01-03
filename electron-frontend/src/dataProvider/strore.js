@@ -13,7 +13,7 @@ const store = configureStore({
         system: systemSlice,
         bill: billSlice,
         order: orderSlice,
-        tables: tablesSilce,
+        floors: tablesSilce,
         menu: menuSlice,
         takeOutBills: takeOutBillsSlice
     }
