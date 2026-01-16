@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { url } from "../../../network/constants";
+import { LAUNCHING_STATE, url } from "../../../network/constants";
 import { postData } from "../../../network/api";
 import { LoadingSpinner } from "../../main/components/components";
 import './login.css';
+import { LaunchStateContext } from "../../../App";
 
 export function LoginForm() {
   const [username, setUsername] = useState("");
@@ -11,6 +12,7 @@ export function LoginForm() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const {state, changeLaunchingState} = useContext(LaunchStateContext)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +32,9 @@ export function LoginForm() {
           localStorage.setItem("refreshToken", refresh);
           localStorage.setItem('user', JSON.stringify(response.data.user));
           setIsLoading(false);
-          navigate('/');
+          changeLaunchingState({value: LAUNCHING_STATE.LOAD_DATA, message: "Loading ....."})
+         navigate('/home', { replace: true });
+          
         } else {
           console.log(response);
           setIsLoading(false);

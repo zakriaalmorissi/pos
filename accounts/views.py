@@ -25,19 +25,13 @@ from asgiref.sync import async_to_sync
 
 @api_view(["GET"])
 def system_set_up(request) -> Response:
-    has_floors: bool = Floor.objects.exists()
-    has_tables = Table.objects.exists()
-    has_users = CustomUser.objects.exists()
-    has_admin = CustomUser.objects.filter(is_admin=True).exists()
+    has_account = True
     has_super_admin = CustomUser.objects.filter(is_superuser=True).exists()
 
 
     data = {
-        'hasFloors': has_floors,
-        'hasTables': has_tables,
-        'hasUsers': has_users,
+        'hasAccount': has_account,
         'hasSuperAdmin': has_super_admin,
-        'hasAdmin': has_admin,
     
     }
 

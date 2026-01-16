@@ -43,15 +43,19 @@ export function Home() {
     // Store the last fetched floor
     window.localStorage.setItem('floorId', floorId);
     const floor = floors.filter((floor) => floor.id === floorId);
-    setCurrentTables(floor[0].tables);
+    setCurrentTables(floor[0]?.tables);
+
+
+    
   };
 
   useEffect(() => {
-    const getLastFecthedFloor = window.localStorage.getItem('floorId');
-    if (getLastFecthedFloor) {
-      setCurrentTables(floors.filter((floor) => floor.floorId === parseInt(getLastFecthedFloor, 10)).tables|| []);
+    const getLastFecthedFloor = Number(window.localStorage.getItem('floorId'))
+    if (getLastFecthedFloor) { 
+      fetchRelatedTables(getLastFecthedFloor)
     } else {
-      setCurrentTables(floors.tables?.filter((table) => table.floorId === 1)|| []);
+      const floor = floors.filter((floor) => floor.id === 1)
+      setCurrentTables(floor[0]?.tables);
     }
   }, [floors, dispatch]);
 

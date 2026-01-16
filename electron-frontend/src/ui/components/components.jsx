@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react'
 import './style.css'
 
-export function ProcessingIndicator ({isLoading ,errorMessage, onIgnore, buttonLabel, action, retry}) {
+export function ProcessingIndicator ({isLoading, errorMessage, onIgnore, buttonLabel, action, retry}) {
     // This function is gonna indicate the proccess of posting some data, or perform some actions
     // If the proccess fails, it is gonna display a message explaining the problem, and give a chance to retry the process or cancel it 
 
 
     return <div className="process-indicator-container">
         <div className="process-indicator-body">
-            <h1>{action}</h1>
+           
            {
-            isLoading && !errorMessage &&<div className="process-indicator">
+             isLoading && !errorMessage && <div> 
+            <h1>{action}</h1>
+            <div className="process-indicator">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
+              
+            </div>
+         
            }
             {
                 errorMessage && <div className="indicator-message-container">

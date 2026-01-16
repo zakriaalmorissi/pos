@@ -37,3 +37,6 @@ export default function AppRoutes() {
     </Routes>
 
 }
+
+
+export function ProtectedRoutes ()  {}
