@@ -1,6 +1,6 @@
 .pop-up-page {
     position: fixed;
-    backdrop-filter: blur(1px);
+    backdrop-filter: blur(3px) saturate(160%);
     top: 0;
     left: 0;
     width: 100%;
@@ -235,6 +235,7 @@
 
 /* style the numeric component */
 .keyboard-container {
+    
     display: flex;
     flex-direction: column;
     align-items: center;

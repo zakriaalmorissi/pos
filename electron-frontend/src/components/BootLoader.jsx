@@ -18,7 +18,7 @@ import { LAUNCHING_STATE, url } from "../network/constants"
 import { useDispatch } from "react-redux"
 import { fetchSystem } from "../dataProvider/systemProvider/system"
 import { postData } from "../network/api"
-import AppRoutes from "../routes/routes"
+
 import { fetchTables } from "../dataProvider/tablesProvider/tablesProvider"
 import { fetchTakeOutBills } from "../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
 import { fetchMenu } from '../dataProvider/menuProvider/menuProvider';
@@ -27,19 +27,27 @@ import { updateTables } from '../dataProvider/tablesProvider/tablesProvider';
 import { cleanTable } from '../dataProvider/tablesProvider/tablesProvider'
 import { useContext } from "react"
 import { LaunchStateContext } from "../App"
+import './style.css'
 
 
 
 function LaunchingSystemIndicator ({
   message,
-  onSkip,
-  errorMessage,
   
 }) {
 
 
 
-  return <div>
+  return <div className="launching-system-indicator">
+      <div>
+          <p>{message}</p>
+
+      </div>
+      <div className="span-indicator-container">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
 
   </div>
 }
@@ -66,9 +74,7 @@ export default function  BootLoader ({children}) {
     }
 
 
-    return <div>
-      Loading ... {message}
-    </div>
+     return <LaunchingSystemIndicator message={message}/>
 
 }
 
@@ -120,8 +126,10 @@ function useInitializeData () {
    
     // Authenticate the user 
     useEffect(()=> {
-        if (state.value !== LAUNCHING_STATE.AUTH) return;
-        authenticateUser()
+        if (state.value === LAUNCHING_STATE.AUTH) {
+          console.log("Authenticating ....")
+           authenticateUser()
+        };
     },[state.value]);
 
 
