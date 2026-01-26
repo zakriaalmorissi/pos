@@ -1,6 +1,6 @@
 import {Routes , Route, useNavigate} from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Home} from '../ui/home';
+import { Home} from '../ui/home/home';
 import FoodForm from '../ui/admin/foodForms/foodForm';
 import AdminHome from '../ui/admin/admin';
 import TablesForm from '../ui/admin/tablesForm/tablesForm';

@@ -120,6 +120,12 @@ def update_table_data(data: dict) -> Response:
 
 
 
+@api_view(["POST", "PUT"])
+def move_table_data_view(request: Request)-> Response:
+    data: dict = request.data
+    print(data)
+
+    return Response({"data": "done"}, status=status.HTTP_200_OK)
 
 
 @api_view(["DELETE"])

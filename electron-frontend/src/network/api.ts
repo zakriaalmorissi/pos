@@ -8,6 +8,7 @@ export interface ErrorResponse<E> {
     status: string;
     error: E;
     message?: string; 
+    
 
 }
 

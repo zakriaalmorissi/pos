@@ -72,12 +72,13 @@ export function ErrorMessage (message) {
 }
 
 
-export function TimeoutErrorMessageIndicator ({message}) {
+export function TimeoutErrorMessageIndicator ({message, resetState}) {
 
     const [show, setShow] = useState(true);
     useEffect(()=> {
        const timer = setTimeout(()=> {
         setShow(false);
+        resetState();
         }, 4000)
 
 
@@ -125,9 +126,7 @@ export function TimeoutMessageIndicator ({
 
       return show && <div className='timeout-message-container'>
         <div className='timeout-message-body'>
-            <p className='timeout-message-content'>
-                {message}
-            </p>
+            <p className='timeout-message-content'>{message}</p>
         </div>
 
     </div>

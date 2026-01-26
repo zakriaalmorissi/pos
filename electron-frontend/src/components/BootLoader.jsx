@@ -1,19 +1,4 @@
-
-
-
-
-// Initialize the data 
-
-/// System Luanch phases
-// 1. Load system configuration 
-    // chech if the system has an account 
-    // check if the system has an admin 
-    // check if the system has data like menu, and tables 
-
-// 2. If all configured, check user authentication
-// 3. Load System data 
-
-import { useEffect, useState } from "react"
+ import { useEffect, useState } from "react"
 import { LAUNCHING_STATE, url } from "../network/constants"
 import { useDispatch } from "react-redux"
 import { fetchSystem } from "../dataProvider/systemProvider/system"
@@ -33,33 +18,38 @@ import './style.css'
 
 function LaunchingSystemIndicator ({
   message,
-  
 }) {
 
 
 
   return <div className="launching-system-indicator">
-      <div>
+      <div className="launching-system-header" >
           <p>{message}</p>
-
       </div>
-      <div className="span-indicator-container">
+      <div className="launching-system-body">
         <span></span>
         <span></span>
         <span></span>
       </div>
 
   </div>
+
+  
 }
+
+
+
 
 export default function  BootLoader ({children}) {
     const {state, message} = useInitializeData()
+    const { socket, } = useWebSocketTables()
 
     if (state === LAUNCHING_STATE.LOGIN) {
       return <LoginForm/>
     }
 
     if (state === LAUNCHING_STATE.CONFIG) {
+      // Return the setting up page 
       return <div>Configuring ...</div>
     }
 
@@ -225,11 +215,12 @@ function useWebSocketTables() {
     let socket;
     // Catch the error properly 
     try {
-      socket = new WebSocket(`ws://localhost:8000/ws/table/`);
+      socket = new WebSocket(`ws://localhost:8000/ws/table/?token=${token}`);
 
       socket.onmessage = (e) => {
         try {
           const updatedTable = cleanTable(JSON.parse(e.data));
+          console.log(updatedTable)
           dispatch(updateTables(updatedTable));
         } catch (err) {
           console.error('Failed to parse WS message', err);
