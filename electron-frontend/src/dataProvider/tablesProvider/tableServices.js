@@ -1,6 +1,5 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+
 import { url } from "../../network/constants";
-import { AwardIcon, Rss, Signal } from "lucide-react";
 
 const createTable = async () => {
     let response;
@@ -81,7 +80,7 @@ const postData = async ({url, data, options = {}, controller}) => {
 
 const moveTableData = async ({senderTable, receiverTable}) => {
     // Override the url 
-    const URL = `${url}ap/move-table-data/`;
+    const URL = `${url}api/move-table-bils/`;
     return await postData({url: URL, data: {senderTable: senderTable, receiverTable: receiverTable} })
 }
 

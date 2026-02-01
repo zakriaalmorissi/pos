@@ -1,5 +1,5 @@
-import { useLocation, useParams} from "react-router-dom";
-import { useState, useEffect, useContext} from "react";
+import { useLocation, useParams, useSearchParams} from "react-router-dom";
+import { useState, useEffect, useContext, useMemo} from "react";
 import style from './../style/table.module.css';
 import { TableProvider, TableContext} from "../provider/provider.jsx"
 import { Header } from "./Header.jsx";
@@ -9,21 +9,33 @@ import { ProcessingIndicator} from "../../components/components.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import BillForm from "../components/bill/billForm.jsx";
 import { createBill, fetchBill} from "../../../dataProvider/billProvider/billSilce.js";
-import { LoadingSpinner } from "../components/components.jsx";
 import BillCard from "../components/bill/BillCard.jsx";
 import {  useTableWebSocket, usetableWebSocketReleasingListener } from "./tableActions.jsx";
+import { LoadingSpinner } from "../components/components.jsx";
 
 
 
 
 export default function SingleTable() {
-    const location = useLocation();
-    const table = location.state?.table;
+    const [searchParams] = useSearchParams();
+    const tableId = Number(searchParams.get('tableId'));
+    const floorId = Number(searchParams.get("floorId"));
+    const {floors} = useSelector(s => s.floors);
+    const table = useMemo(()=> {
+        // stop searching if no floorId or tableId 
+        if (!tableId || !floorId) return null;
+        const floor = floors.find((flr) => flr.id === floorId);
+        const table = floor?.tables.find(tbl => tbl.id === tableId);
+        console.log("Memo is called from the single table component");
+        return table;
+
+    }, [floorId, tableId, floors]);
+
+
     if (!table) {
-        // load the table 
         return <LoadingSpinner/>
     }
-
+  
   return (
     <TableProvider>
       <DisplayTable table={table} />
@@ -46,7 +58,6 @@ function DisplayTable ({table}) {
         selectBill: table.bills.length !== 0,
     });
 
-    const [occupyError, setOccupyError] = useState(null);
     const {
         bill, 
         loading, loadingBillError, 

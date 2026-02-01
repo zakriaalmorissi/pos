@@ -32,12 +32,14 @@ def handle_bill_table_change(sender, instance, created, **kwargs):
         if old_table_id and old_table_id != new_table_id:
             old_table = Table.objects.filter(id=old_table_id).first()
             if old_table:
-                send_table_update(old_table)
+                pass
+                #send_table_update(old_table)
         # Always update the new/current table
         if new_table_id:
             new_table = Table.objects.filter(id=new_table_id).first()
             if new_table:
-                send_table_update(new_table)
+                pass
+                #send_table_update(new_table)
 
     except Exception as e:
         print("Signal error:", e)

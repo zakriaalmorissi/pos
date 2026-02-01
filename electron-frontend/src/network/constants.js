@@ -19,4 +19,15 @@ const LAUNCHING_STATE = {
   READY: "READY"
 }
 
-export {url, tokens, LAUNCHING_STATE};
+const UI_MODE = {
+  MAIN: "main",
+  SELECT: "select"
+}
+
+const TABLE_STATES = {
+  OCCUPIED: "occupied",
+  AVAILABLE: "available",
+  BUSY: "busy",
+}
+
+export {url, tokens, LAUNCHING_STATE, UI_MODE, TABLE_STATES};

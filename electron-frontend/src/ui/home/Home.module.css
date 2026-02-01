@@ -15,7 +15,9 @@
     --buttons-bg: rgb(241, 241, 241);
 }
 
-.main {
+
+
+.home {
     display: flex;
     flex-direction: column;
     background-color: var(--main-bgs);
@@ -26,9 +28,16 @@
 
 .header {
     height: 7.5vh;
-    background-color: var(--secondary-colors);
     padding: 0.2rem;
     color: var(--main-colors);
+    background-color: var(--secondary-colors);
+}
+
+.main {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--main-bgs);
+
 }
 
 .headerContents {
@@ -43,10 +52,13 @@
 }
 
 .headerContents button {
-    background-color: var(--buttons-bg);
+    backdrop-filter: blur(8px);
+    box-shadow: 0px 7px 32px rgba(0, 0, 0, 0.119) ;
+    background-color: transparent;
+    border: 5px solid rgba(225, 225, 225, 0.18);
     color: var(--main-colors);
+    border-radius: 16px ;
     border: none;
-    border-radius: var(--border-radius);
     padding: 0.3rem 1rem;
     cursor: pointer;
     transition: background 0.2s;
@@ -66,20 +78,14 @@
 }
 
 .menuContainer {
-    position: fixed;
     display: flex;
-    top: 0;
-    left: 0;
     flex-direction: column;
     align-items: center;
-    width: 9%;
+    width: 3vw;
     height: 100%;
-    margin: 0;
-    padding-top: 0.5rem;
-    margin-top: 0.3rem;
     background-color: var(--secondary-colors);
-    z-index: 10;
-    /* Animation properties */
+    border: 1px solid white;
+
 }
 
 .menuButtonsContainer {
@@ -87,20 +93,21 @@
     flex-direction: column;
     width: 100%;
     margin-top: 0.5rem;
+    height: 100%;
     gap: var(--spacing);
 }
 
-.menuButtonsContainer button {
+.menuButtonsContainer svg {
     width: 100%;
-    background-color: var(--buttons-bg);
     color: var(--main-colors);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    height: 4rem;
+    margin-bottom: 1.4rem;
+    height: 2.1rem;
     cursor: pointer;
     transition: background 0.2s, border 0.2s;
+    border-radius: var(--border-radius);
+    box-shadow: 0.1px 0.1px 0.1px gray;
 }
-.menuButtonsContainer button:hover {
+.menuButtonsContainer svg:hover {
     background-color: var(--buttons-hover);
     border-color: var(--main-color);
 }
@@ -118,38 +125,66 @@
 }
 
 .floorContainer {
+    backdrop-filter: blur(20px);
+    background-color: rgba(255, 255, 255, 0.355);
+    position: fixed;
+    top: 90%;
+    bottom: 5%;
+    left: 5%;
+    right: 5%;
     display: flex;
-    flex-direction: column;
-    background-color: var(--secondary-colors);
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     color: var(--main-colors);
-    width: 8.5%;
-    min-width: 6vw;
-    max-width: 10%;
-    box-shadow: 1px 2px rgb(228, 228, 228);
-    overflow-y: hidden;
+    border-radius: 16px;
+    border: 5px solid rgba(225, 225, 225, 0.18);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.204);
+    width: 90%;
+    z-index: 999;
+    height: 5.5rem;
+    
 }
 
-.floorContainer button {
-    height: 4rem;
+
+.floorContainer .floorContents {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    background-color: var(--buttons-bg);
+    height: 100%;
+    background-color: transparent;
+
+}
+
+.floorContents button {
+    border-radius: 8px;
+    border: 3px solid rgba(red, green, blue, 0.18) ;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 5rem;
+    background-color: transparent ;
     color: var(--main-colors);
     border: none;
-    border-bottom: 1px solid var(--border-color);
-    border-radius: 0;
+    margin: 0.5rem;
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.2s;
 }
 .floorContainer button:hover {
-    background-color: var(--buttons-hover);
+    background-color: rgba(255, 255, 255, 0.375);
 
 }
 
-.devMainTables {
+.homeTableContainer {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
-    width: 90%;
+    width: 100%;
     background-color: #e5e5e5;
     margin: 1rem;
     padding: 1rem;
@@ -237,6 +272,8 @@
     gap: 2rem;
     
 }
+
+
 
 
 

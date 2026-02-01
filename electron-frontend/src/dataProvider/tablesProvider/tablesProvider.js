@@ -24,7 +24,8 @@ export const cleanTable = (table) => {
     status: table.status,
     countedBills: table.counted_bills ,
     bills: table.bills || [],
-    hasOrders: table.has_orders
+    hasOrders: table.has_orders,
+    selected: false,
   }
 }
 
@@ -43,7 +44,7 @@ const tablesSlice = createSlice({
       updateTables: (state, action) => {
         const updatedTable = action.payload;
         for (const floor of state.floors) {
-          const idx = floor.tables.findIndex(t => t.id === updatedTable.id);
+          const idx = floor.tables.findIndex(t => t.id === updatedTable?.id);
           if (idx !== -1) {
             floor.tables[idx] = {
               ...floor.tables[idx],

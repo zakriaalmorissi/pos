@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {  updateTables } from '../../dataProvider/tablesProvider/tablesProvider.js';
+import {  fetchTables, updateTables } from '../../dataProvider/tablesProvider/tablesProvider.js';
+import { UI_MODE } from '../../network/constants.js';
 
 import { moveTableData } from '../../dataProvider/tablesProvider/tableServices.js';
 
@@ -8,7 +9,9 @@ import { moveTableData } from '../../dataProvider/tablesProvider/tableServices.j
 
 export default function useInitializeHomeData  () {
   const { floors } = useSelector((s) => s.floors);
-  const [currentTables, setCurrentTables] = useState([]);
+  const [selectedFloorId, setSelectedFloorId] =  useState( ()=>{
+    return Number(localStorage.getItem("floorId")) || null
+    });
   const [firstPressedTable, setFirstPressedTable] = useState(null);
   const [processingModel, setProcessingModel] = useState({
     processing: false,
@@ -19,37 +22,32 @@ export default function useInitializeHomeData  () {
   })
 
   const dispatch = useDispatch();
-  const [mode, setMode] = useState("main");
+  const [mode, setMode] = useState(UI_MODE.MAIN);
 
 
-  // set the current tables 
+  const currentTables = useMemo(()=> {
+    console.log("Memo is called from the home component");
+    // Break the process if there is no floors at all
+     if (floors.length === 0) return [];
+     // Get the latest fetched tables
+     const floor = floors.find(flr => flr.id === selectedFloorId)
+  
+     return floor?.tables ?? floors[0]?.tables ?? []
+  }, [selectedFloorId, floors]);
+
+
+  // Set the current tables 
   const getRelatedTables = (floorId) => {
-    // break everthing if there are no floors 
-    if (floors.length === 0) return;
-
-    if (floorId) {
-      // set the current tables according to the recieved floor id
-      const floor = floors.find((flr) => flr.id === floorId)
-      if (floor) {
-        setCurrentTables(floor.tables);
-        localStorage.setItem("floorId", floor.id);
-        return;
-      }
-    }
-    // if no floor id, retrieve the first floor tables;
-    setCurrentTables(floors[0].tables);
+    if (!floorId) return;
+    setSelectedFloorId(floorId);
   }
 
-
   useEffect(()=> {
-    const storedId = Number(localStorage.getItem('floorId'));
-    if (storedId) {
-      getRelatedTables(storedId);
-      return;
+    console.log("Effect from home com ran")
+    if (selectedFloorId !== null) {
+      localStorage.setItem("floorId", selectedFloorId);
     }
-    getRelatedTables();
-  }, [floors]);
-
+  }, [selectedFloorId]);
 
      
   const getClickedTable = (tableId) => {
@@ -61,16 +59,18 @@ export default function useInitializeHomeData  () {
   
     if (!firstPressedTable){
       if (table.hasOrders) {
-        setFirstPressedTable(table);     }
+        setFirstPressedTable(table);
+        dispatch(updateTables({...table, selected: true}));
+      }
      return;
     }
+
+    if (firstPressedTable?.id === table?.id) return;
 
     // The second click
       transformTableData({ senderTable : firstPressedTable, receiverTable: table,});
       
   };
-
-// mark the table as busy in the backend , not here for security and better performance
 
   const  transformTableData = async ({senderTable, receiverTable})  => {
     setProcessingModel( prev => ({
@@ -81,30 +81,44 @@ export default function useInitializeHomeData  () {
     }));
 
     try {
-     const response =  await moveTableData({senderTable: senderTable, receiverTable: receiverTable})
-
-
+      await moveTableData({senderTable: senderTable, receiverTable: receiverTable});
+     // Update tables 
+      dispatch(fetchTables());
+      setProcessingModel({
+        processing: false,
+        message: "",
+        processingFailure: false,
+        action: "",
+        failureMessage: "",
+      });
     } catch (error) {
-        setProcessingModel({
-          processing: false,
-          message: "",
+        const errorMessage = error?.hint || error?.message || "Unknown error occurred";
+        setProcessingModel(prev => ({
+          ...prev,
           action: "movingData",
           processingFailure: true,
-          failureMessage: `Failed to move table data "${error.hint}"`
-        })
+          failureMessage: `Failed to move table data: ${errorMessage}`
+        }))
     } finally {
-      setFirstPressedTable(null);
-      setMode("main");
-    }
-   
+      setMode(UI_MODE.MAIN);  
+    } 
   }
 
-  const afterMovingTableData  = () => {
-    // do some clean up and resetting here 
-  }
+
   const changeMode = () => {
-    setMode(prev => prev === "select"? "main": "select");
-  }
+    setMode(prev => prev === UI_MODE.SELECT? UI_MODE.MAIN: UI_MODE.SELECT);
+ 
+  };
+
+  // reset the table state 
+  useEffect(()=> {
+    if (mode === UI_MODE.MAIN && firstPressedTable?.id) {
+      dispatch(updateTables({...firstPressedTable, selected: false}));
+      setFirstPressedTable(null)
+    }
+
+  }, [mode, firstPressedTable?.id, dispatch]);
+
 
   const resetState = () => {
     // return the ui state into normal after a certain task
@@ -115,8 +129,6 @@ export default function useInitializeHomeData  () {
       processingFailure: false,
       failureMessage: "",
     });
-
-    if (mode === "select") setMode( "main");
 
   }
 
@@ -132,7 +144,8 @@ export default function useInitializeHomeData  () {
       mode: mode,
       changeMode: changeMode
     },
-    resetState: resetState
+    resetState: resetState,
+  
 
   }
 

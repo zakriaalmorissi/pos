@@ -2,18 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import style from './Home.module.css';
 import {
-  AlignJustify,
   ArrowLeftRight,
   ChartArea,
+  HomeIcon,
   Laptop2,
   ScrollText,
   ShoppingBasket,
   User,
   Wifi,
-  XCircleIcon,
 } from 'lucide-react';
 import { ProcessingIndicator, TimeoutErrorMessageIndicator, TimeoutMessageIndicator} from '../components/components.jsx';
 import useInitializeHomeData from './homeInitialization.jsx';
+import { TABLE_STATES, UI_MODE } from '../../network/constants.js';
 
 
 // ---------------------- Home (main UI) ----------------------
@@ -29,40 +29,49 @@ export function Home() {
   uiModeModel,
   resetState
  } = useInitializeHomeData();
-  const navigate = useNavigate();
-  const [displayMenu, setDisplayMenu] = useState(false);
+  
 
 
-  const onNavigate = () => {
-    navigate('/admin');
-  };
-
-  // View errors sets
-  const viewError = {
-      transformingError: processingModel.action === "movingData" &&
-        processingModel.processingFailure && <TimeoutErrorMessageIndicator 
-          message={processingModel.failureMessage}
-          resetState={()=> resetState()}
-         
-         />
-
-  };
+  const transformingIndicator = processingModel.action === "movingData" &&
+    processingModel.processing && <ProcessingIndicator
+      isLoading={processingModel.processing}
+      action={processingModel.message}
+      errorMessage={processingModel.processingFailure && processingModel.failureMessage}
+      buttonLabel={"Ok"}
+      onIgnore={resetState}
+    />
 
   return (
-    <div className={style.main}>
-      <div className={style.header}>
-        <div className={style.headerContents}>
-          <div>
-            <button onClick={() => setDisplayMenu(true)}>
-              <AlignJustify size={32} fontWeight={800} />
-            </button>
+    <div className={style.home}>
+      <MainHeader changeMode={uiModeModel.changeMode} mode={uiModeModel.mode}/>
+      <div className={style.main}>
+          <MainLeftSideComponent/>
+          <div className={style.floorAndTableContainer}>
+
+          { uiModeModel.mode === UI_MODE.SELECT? (
+              <SelectTableMode tables={currentTables} onTableClick={getClickedTable}/>
+          
+          ):<TablesComponent tables={currentTables}/>
+        
+        }
           </div>
+      </div>
+      <MainBottomComponent floors={floors} getRelatedTables={getRelatedTables}/>
+      {transformingIndicator}
+    </div>
+  );
+}
+
+function MainHeader ({changeMode, mode})  {
+    const navigate = useNavigate();
+    return <div className={style.header}>
+        <div className={style.headerContents}>
           <h3>Pos System</h3>
           <div className={style.headerRightButtons}>
             <button
-              onClick={()=> uiModeModel.changeMode()}
-              style={  { backgroundColor: uiModeModel.mode === "select" && 'red',
-                 color:  uiModeModel.mode === "select" && 'white' }}
+              onClick={()=> changeMode()}
+              style={  { backgroundColor: mode === UI_MODE.SELECT && 'red',
+                 color: mode === UI_MODE.SELECT && 'white' }}
             >
               <ArrowLeftRight size={32} />
             </button>
@@ -76,60 +85,45 @@ export function Home() {
         </div>
       </div>
 
-      <div className={style.floorAndTableContainer}>
-        <div className={style.floorContainer}>
-          <div className={style.floorContents}>
-            {floors.map((floor) => {
-              return (
-                <button key={floor.id} onClick={() => getRelatedTables(floor.id)}>
-                  {floor.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+}
 
-        { uiModeModel.mode === "select"? (
-            <SelectTableMode tables={currentTables} onTableClick={getClickedTable}/>
-        
-        ):<TablesComponent tables={currentTables}/>
-      
-      }
-      </div>
 
-      {displayMenu && (
-        <div className={`${style.menuContainer} ${displayMenu ? style['menuContainer--visible'] : ''}`}>
-          <XCircleIcon size={40} onClick={() => setDisplayMenu(false)} />
-
-          <div className={style.menuButtonsContainer}>
-            <button onClick={onNavigate}>
-              <User />
-              <p>Admin</p>
-            </button>
-            <button>
+function MainLeftSideComponent () {
+  const navigate = useNavigate();
+  return (
+        <div className={style.menuContainer}>
+            <div className={style.menuButtonsContainer}>
+              <User  onClick={()=> navigate("/admin")} />
               <ChartArea />
-              <p>Statistics</p>
-            </button>
-            <button>
-              <ScrollText />
-              <p>Bill Viewer</p>
-            </button>
-            <button onClick={() => navigate('/devices')}>
+              <ScrollText/>
               <Laptop2 />
-              <p>Devices</p>
-            </button>
-          </div>
+            </div>
         </div>
-      )}
-      
-      {viewError.transformingError}
-    </div>
-  );
+    )
+
+
 }
 
 
 
+function MainBottomComponent ({floors, getRelatedTables}) {
+  return <div className={style.floorContainer}>
+        <div className={style.floorContents}>
+          {floors.map((floor) => {
+            return (
+                <button key={floor.id} onClick={() => getRelatedTables(floor.id)}>
+                    <HomeIcon/>
+                    <p>{floor.name}</p>
+                 </button>
+    
+            );
+          })}
+        </div>
+    </div>
+}
+
 function TablesComponent ({tables}) {
+  // Display the default look of the tables
   const [timerMessage, setTimerMessage] = useState({
     show: false,
     message: ""
@@ -138,43 +132,102 @@ function TablesComponent ({tables}) {
   const notifyUser = (table) => {
      setTimerMessage({
       show: true,
-      message: table.status.note
+      message: table.status?.note
      })
   }
 
-  return  <div className={style.devMainTables}>
+  return  <div className={style.homeTableContainer}>
             {tables?.map((table) => (
-              <TableCard key={table.id} table={table}
+              <DefaultTableCard 
+                  key={table.id} 
+                  table={table}
                   notifyUser={notifyUser}
-                  isNavigate={true}
-                  
-                  />
+              />
             ))}
 
           {
-            timerMessage.show && <TimeoutMessageIndicator message={timerMessage.message} timer={3000} 
-            resetState = {() => {
-              setTimerMessage({
-                show: false, 
-                message: ""
-              })
+            timerMessage.show && <TimeoutMessageIndicator 
+              message={timerMessage.message}
+              timer={3000} 
+              resetState = {() => {
+                setTimerMessage({
+                  show: false, 
+                  message: ""
+                })
             }}/>
           }
           </div>
 }
 
 
+function DefaultTableCard ({table, notifyUser}) {
+  const className = `
+        ${style.singleTable}
+        ${table.status.status === TABLE_STATES.OCCUPIED
+          ? style[TABLE_STATES.OCCUPIED]
+          : table.hasOrders
+              ? style.hasOrders
+              : style[TABLE_STATES.AVAILABLE]
+        }
+    `;
+  
+
+  return <div className={style.singleTableContainer}>
+      {
+        table.countedBills > 1 && (
+          <p className={style.countedBills}>{table.countedBills}</p>
+        )
+      }
+      {
+        table.status.status ===  TABLE_STATES.OCCUPIED? (
+        <button 
+          className={className}
+          onClick={()=> notifyUser(table)}
+          >
+           {table.name}
+        </button>
+
+        ): <Link className={className} to={`/home/singleTable?floorId=${table.floorId}&tableId=${table.id}`}>
+            {table.name}
+        </Link>
+      }
+  </div>
+}
+
+
+
 
 function SelectTableMode ({tables, onTableClick}) {
+  const [message, setMessage]  = useState({
+    show: false, 
+    mesg: "",
+  });
+  const notifyUser = (mesg) => {
+    setMessage({
+      show: true,
+      mesg: "You cannot select an occupied table !"
+    })
 
-  // Get the tables from here 
-  // Transforming tables is from here;
-
-
-  return <div className={style.devMainTables} >
+  }
+  return <div className={style.homeTableContainer} >
       <TimeoutMessageIndicator  message={"Select Table Mode"}  timer={"infinite"} />
       {
-        tables?.map((table) => <TableCard key={table.id}  table={table} onClicked={onTableClick} isNavigate={false} />)
+        tables?.map((table) => <TableCard 
+            key={table.id} 
+            table={table} 
+            onClicked={onTableClick}
+            notifyUser={notifyUser}
+         />)
+      }
+      {
+        message.show && <TimeoutErrorMessageIndicator 
+          message={message.mesg} 
+          resetState={()=> {
+            setMessage({
+              show: false,
+              mesg: ''
+            })
+        }} />
       }
   </div>
 
@@ -182,12 +235,12 @@ function SelectTableMode ({tables, onTableClick}) {
 
 
 // ---------------------- Table component ----------------------
-function TableCard({ table, isNavigate, onClicked, notifyUser }) {
+function TableCard({ table, onClicked, notifyUser}) {
   const isClicked = useRef(false);
 
   useEffect(() => {
     isClicked.current = false;
-  }, [table?.id, isNavigate]);
+  }, [table?.id]);
 
   const handleOnClick = (tableId) => {
     isClicked.current = true;
@@ -196,20 +249,18 @@ function TableCard({ table, isNavigate, onClicked, notifyUser }) {
   };
 
 
-
-  
   const className = `
         ${style.singleTable}
-        ${table.status.status === "occupied"
-          ? style["occupied"]
+        ${table.status.status === TABLE_STATES.OCCUPIED
+          ? style[TABLE_STATES.OCCUPIED]
           : table.hasOrders
               ? style.hasOrders
-              : style["available"]
+              : style[TABLE_STATES.AVAILABLE]
         }
     `;
 
-  // If the table is occupied → just show the box with no click actions
-  if (table.status.status === "occupied") {
+   // If the table is occupied → just show the box with no click actions
+  if (table.status.status === TABLE_STATES.OCCUPIED) {
     return (
       <div className={style.singleTableContainer}>
         <button 
@@ -222,27 +273,9 @@ function TableCard({ table, isNavigate, onClicked, notifyUser }) {
     );
   }
 
-  // If navigate mode is on → tables act as links
-  if (isNavigate) {
-    return (
-      <div className={style.singleTableContainer}>
-        {table.countedBills > 1 && (
-          <p className={style.countedBills}>{table.countedBills}</p>
-        )}
-        <Link className={className} to={`/home/singleTable/${table.id}`}
-          state={
-            // Send table data instead of refecthing 
-            {table: table}
-          }
-        >
-          {table.name}
-        </Link>
-      </div>
-    );
-  }
 
   // Transfer/select mode: Table has orders and is clicked
-  if (isClicked.current && table.hasOrders ) {
+  if (table.hasOrders && table.selected) {
     return (
       <div className={style.singleTableContainer}>
         <button
@@ -271,3 +304,5 @@ function TableCard({ table, isNavigate, onClicked, notifyUser }) {
 
   );
 }
+
+

@@ -121,11 +121,28 @@ def update_table_data(data: dict) -> Response:
 
 
 @api_view(["POST", "PUT"])
-def move_table_data_view(request: Request)-> Response:
+def move_table_bills_view(request: Request)-> Response:
     data: dict = request.data
-    print(data)
+    sender_table = data.get("senderTable", None)
+    receiver_table = data.get("receiverTable", None)
+    
+    if sender_table and receiver_table: 
+        receiver_table = Table.objects.filter(id = receiver_table["id"]).first()
+        sender_table = Table.objects.filter(id=sender_table["id"]).first()
+        if receiver_table and sender_table: 
+            sent_bills = Bill.objects.filter(table = sender_table.id)
+            for bill in sent_bills: 
+                bill.table = receiver_table
+                bill.save()
+            serailize_receiver_table = SerializeTables(receiver_table)
+            send_table_update(receiver_table)
+            send_table_update(sender_table)
+            return Response(serailize_receiver_table.data, status=status.HTTP_200_OK)
 
-    return Response({"data": "done"}, status=status.HTTP_200_OK)
+
+    # return the tables 
+    return Response({"error": "Faild to move table bills"}, status=status.HTTP_200_OK)
+  
 
 
 @api_view(["DELETE"])
@@ -278,10 +295,7 @@ def create_order(request: Request) -> Response:
     
     if serialize.is_valid():
         serialize.save()
-        if table_id:
-            send_table_update(table=table)
         return Response(serialize.data, status=200)
-    print(serialize.errors)
     return Response(serialize.errors, status=400)
 
 

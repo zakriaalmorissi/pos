@@ -220,7 +220,7 @@ function useWebSocketTables() {
       socket.onmessage = (e) => {
         try {
           const updatedTable = cleanTable(JSON.parse(e.data));
-          console.log(updatedTable)
+         // console.log(updatedTable)
           dispatch(updateTables(updatedTable));
         } catch (err) {
           console.error('Failed to parse WS message', err);

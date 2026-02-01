@@ -1,5 +1,4 @@
 import {Routes , Route, useNavigate} from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { Home} from '../ui/home/home';
 import FoodForm from '../ui/admin/foodForms/foodForm';
 import AdminHome from '../ui/admin/admin';
@@ -23,7 +22,7 @@ export default function AppRoutes() {
                     <Route path='/admin' element={<AdminHome/>}/>
                     <Route path='/food/:category' element={<FoodForm/>}/>
                     <Route path='/tablesForm' element={<TablesForm/>}/>
-                    <Route path='home/singleTable/:id' element={<SingleTable/>}/>
+                    <Route path='home/singleTable' element={<SingleTable/>}/>
                     <Route path='/billsHome' element={<BillsHome/>}/>
                     <Route path='/singleBill/:id' element={<SingleBill/>}/>
                     <Route path='/login' element={<LoginForm/>}/>
