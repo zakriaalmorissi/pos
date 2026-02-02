@@ -169,44 +169,53 @@
 .timeout-error-message-container, 
 .timeout-message-container {
     backdrop-filter: blur(20px) saturate(160%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.342);
     display: flex;
     position: fixed;
     top: 6%;
     left: 40%;
     right: 50%;
-    background-color: rgb(250, 188, 188);
     min-width: 20rem;
     height: 3rem;
-    border-radius: 1rem;
 }
 
 .timeout-error-message-body,
 .timeout-message-body {
     display: flex;
     align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    color: rgb(247, 69, 69);
     padding: 0.5rem;
 }
 
 .timeout-message-container {
     min-width: fit-content;
-    background-color: rgba(140, 213, 241, 0.842);
+    background-color: rgba(255, 255, 255, 0.527);
 }
 
 .timeout-message-body {
     display: flex;
     align-items: center;
+    text-align: center;
     width: max-content;
     height: 100%;
-    color: rgb(47, 50, 228);
+    color: rgb(0, 4, 255);
     padding: 0.5rem;
 
 }
 
 .timeout-message-content {
     padding: 0.5rem;
+}
+
+
+.timeout-error-message-container{
+    background-color: rgba(255, 2, 2, 0.281);
+    color: rgb(255, 0, 0);
+    font-size: large;
+
 }
 
 

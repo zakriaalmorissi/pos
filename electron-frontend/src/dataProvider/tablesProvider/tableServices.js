@@ -80,7 +80,7 @@ const postData = async ({url, data, options = {}, controller}) => {
 
 const moveTableData = async ({senderTable, receiverTable}) => {
     // Override the url 
-    const URL = `${url}api/move-table-bils/`;
+    const URL = `${url}api/move-table-bills/`;
     return await postData({url: URL, data: {senderTable: senderTable, receiverTable: receiverTable} })
 }
 

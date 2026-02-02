@@ -27,18 +27,19 @@ export function Home() {
   getClickedTable,  
   processingModel,
   uiModeModel,
-  resetState
+  resetState,
+  retryMovingTableData, 
  } = useInitializeHomeData();
   
 
-
   const transformingIndicator = processingModel.action === "movingData" &&
-    processingModel.processing && <ProcessingIndicator
-      isLoading={processingModel.processing}
-      action={processingModel.message}
-      errorMessage={processingModel.processingFailure && processingModel.failureMessage}
-      buttonLabel={"Ok"}
-      onIgnore={resetState}
+     <ProcessingIndicator
+        isLoading={processingModel.processing}
+        action={processingModel.message}
+        errorMessage={processingModel.processingFailure && processingModel.failureMessage}
+        buttonLabel={"Ok"}
+        onIgnore={resetState}
+        onRetry={retryMovingTableData}
     />
 
   return (

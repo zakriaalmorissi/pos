@@ -12,13 +12,17 @@ export default function useInitializeHomeData  () {
   const [selectedFloorId, setSelectedFloorId] =  useState( ()=>{
     return Number(localStorage.getItem("floorId")) || null
     });
-  const [firstPressedTable, setFirstPressedTable] = useState(null);
   const [processingModel, setProcessingModel] = useState({
     processing: false,
     message: "",
     action: "",
     processingFailure: false,
     failureMessage: "",
+  })
+
+  const [pressedTablesModel, setPressedTablesModel] = useState({
+    firstPressedTable: null,
+    secondPressedTable: null
   })
 
   const dispatch = useDispatch();
@@ -53,44 +57,55 @@ export default function useInitializeHomeData  () {
   const getClickedTable = (tableId) => {
     const table = currentTables.find((t) => t.id ===  tableId);
     if (!table) {
-      setFirstPressedTable(null);
+      setPressedTablesModel({
+        firstPressedTable: null,
+        secondPressedTable: null,
+      })
       return;
     }
   
-    if (!firstPressedTable){
+    if (!pressedTablesModel.firstPressedTable){
       if (table.hasOrders) {
-        setFirstPressedTable(table);
+        // Assign the first pressed Table 
+        setPressedTablesModel({
+          firstPressedTable: table,
+          secondPressedTable: null, // Still null 
+        })
+        // Mark it as selected
         dispatch(updateTables({...table, selected: true}));
       }
      return;
     }
 
-    if (firstPressedTable?.id === table?.id) return;
+    if (pressedTablesModel.firstPressedTable?.id === table?.id) return;
 
     // The second click
-      transformTableData({ senderTable : firstPressedTable, receiverTable: table,});
+      // Assign the second pressed table in order to use it in retry function
+      setPressedTablesModel(prev => (
+        {...prev, secondPressedTable: table}
+      ));
+      // Transform tables' data -> final stage
+    transformTableData({ senderTable : pressedTablesModel.firstPressedTable, receiverTable: table,});
       
   };
 
   const  transformTableData = async ({senderTable, receiverTable})  => {
-    setProcessingModel( prev => ({
-      ...prev,
+    // Start processing 
+    setProcessingModel({
       processing: true, 
       message: `Moving ${senderTable.name} data to ${receiverTable.name}`,
       action: "movingData",
-    }));
+      processingFailure: false,
+      failureMessage: '',
+    });
 
     try {
       await moveTableData({senderTable: senderTable, receiverTable: receiverTable});
      // Update tables 
       dispatch(fetchTables());
-      setProcessingModel({
-        processing: false,
-        message: "",
-        processingFailure: false,
-        action: "",
-        failureMessage: "",
-      });
+      // reset the state 
+      resetState();
+     
     } catch (error) {
         const errorMessage = error?.hint || error?.message || "Unknown error occurred";
         setProcessingModel(prev => ({
@@ -99,9 +114,7 @@ export default function useInitializeHomeData  () {
           processingFailure: true,
           failureMessage: `Failed to move table data: ${errorMessage}`
         }))
-    } finally {
-      setMode(UI_MODE.MAIN);  
-    } 
+    }
   }
 
 
@@ -112,12 +125,17 @@ export default function useInitializeHomeData  () {
 
   // reset the table state 
   useEffect(()=> {
-    if (mode === UI_MODE.MAIN && firstPressedTable?.id) {
-      dispatch(updateTables({...firstPressedTable, selected: false}));
-      setFirstPressedTable(null)
+    const cachePressedTables = pressedTablesModel.firstPressedTable || pressedTablesModel.secondPressedTable;
+
+    if (mode === UI_MODE.MAIN && cachePressedTables) {
+      dispatch(updateTables({...pressedTablesModel.firstPressedTable, selected: false}));
+      setPressedTablesModel({
+        firstPressedTable: null,
+        secondPressedTable: null,
+      })
     }
 
-  }, [mode, firstPressedTable?.id, dispatch]);
+  }, [mode, pressedTablesModel, dispatch]);
 
 
   const resetState = () => {
@@ -129,7 +147,26 @@ export default function useInitializeHomeData  () {
       processingFailure: false,
       failureMessage: "",
     });
+    if (mode === UI_MODE.SELECT) setMode(UI_MODE.MAIN);
 
+  }
+
+  const retryMovingTableData = async () => {
+    setProcessingModel({
+        processing: false,
+        message: "",
+        action: "",
+        processingFailure: false,
+        failureMessage: ""
+      })
+      const cachePressedTables = pressedTablesModel.firstPressedTable && pressedTablesModel.secondPressedTable;
+      if (cachePressedTables){
+        // Resend the data automatically 
+       await transformTableData({
+          senderTable: pressedTablesModel.firstPressedTable,
+          receiverTable: pressedTablesModel.secondPressedTable
+        })
+      } 
   }
 
 
@@ -145,6 +182,7 @@ export default function useInitializeHomeData  () {
       changeMode: changeMode
     },
     resetState: resetState,
+    retryMovingTableData: retryMovingTableData
   
 
   }
