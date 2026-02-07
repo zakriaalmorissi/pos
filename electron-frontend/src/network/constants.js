@@ -7,6 +7,7 @@ const tokens = {
  }
 
 
+ const SOCKET_URL = 'ws://localhost:8000/ws/';
 
 const LAUNCHING_STATE = {
   
@@ -30,4 +31,4 @@ const TABLE_STATES = {
   BUSY: "busy",
 }
 
-export {url, tokens, LAUNCHING_STATE, UI_MODE, TABLE_STATES};
+export {url, tokens, LAUNCHING_STATE, UI_MODE, TABLE_STATES, SOCKET_URL};

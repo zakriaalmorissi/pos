@@ -1,4 +1,4 @@
-import { useLocation, useParams, useSearchParams} from "react-router-dom";
+import { useNavigate, useSearchParams} from "react-router-dom";
 import { useState, useEffect, useContext, useMemo} from "react";
 import style from './../style/table.module.css';
 import { TableProvider, TableContext} from "../provider/provider.jsx"
@@ -10,8 +10,9 @@ import { useDispatch, useSelector } from "react-redux";
 import BillForm from "../components/bill/billForm.jsx";
 import { createBill, fetchBill} from "../../../dataProvider/billProvider/billSilce.js";
 import BillCard from "../components/bill/BillCard.jsx";
-import {  useTableWebSocket, usetableWebSocketReleasingListener } from "./tableActions.jsx";
+import {  useTableWebSocket } from "./tableActions.jsx";
 import { LoadingSpinner } from "../components/components.jsx";
+import { TABLE_ACTIONS } from "./tableConsistents.js";
 
 
 
@@ -26,7 +27,7 @@ export default function SingleTable() {
         if (!tableId || !floorId) return null;
         const floor = floors.find((flr) => flr.id === floorId);
         const table = floor?.tables.find(tbl => tbl.id === tableId);
-        console.log("Memo is called from the single table component");
+       // console.log("Memo is called from the single table component");
         return table;
 
     }, [floorId, tableId, floors]);
@@ -45,17 +46,15 @@ export default function SingleTable() {
 
 
 function DisplayTable ({table}) {
-    
     const {orderStatus} = useContext(TableContext);
     const dispatch = useDispatch();
-    const socketListener =  usetableWebSocketReleasingListener(table);
-    const {socketError, isProcessing, data, tableAction} =  useTableWebSocket(table)
+    const {tableAction, socketModel, resetSocketModel} =  useTableWebSocket(table);
    
  
 
     const [viewsModel, setViewsModel] = useState({
         createBill: table.bills.length === 0,
-        selectBill: table.bills.length !== 0,
+        selectBill: table.bills.length > 0,
     });
 
     const {
@@ -85,17 +84,6 @@ function DisplayTable ({table}) {
         setViewsModel(prev => ({...prev, createBill: true}))
 
     }
-    const views = {
-        billForm: <BillForm 
-            onSubmit={createTableBill}
-            onBack={tableAction.releaseTable}
-        />,
-        selectedBill: <BillSelectionView 
-            table={table}
-            bills={table.bills} 
-            onBack={tableAction.releaseTable}
-            selectedBill={selectTableBill} />
-    }
 
     const billFailure = async () => {
         // Clear the bill error and other cache data 
@@ -104,19 +92,40 @@ function DisplayTable ({table}) {
     }
 
     const Processindicators = {
-        "creatingBill": creatingBill && <ProcessingIndicator isLoading={creatingBill}
-            message={creatingBillError?.message}
+        "creatingBill": creatingBill && <ProcessingIndicator 
+            isLoading={creatingBill}
+            errorMessage={creatingBillError?.message}
             onIgnore={billFailure}
         
         />,
-        "loadingBill":  loading && <ProcessingIndicator 
+        "loadingBill": <ProcessingIndicator 
                             isLoading={loading}
-                            message={loadingBillError}
+                            errorMessage={loadingBillError}
                             onIgnore={billFailure}
                             
                         />,
         "UpdatingBill": null,
+        occupying: (<ProcessingIndicator 
+            isLoading={socketModel.action === TABLE_ACTIONS.OCCUPYING}
+            action={socketModel.message}
+            errorMessage={socketModel.failure && socketModel.failureMessage}
+            onIgnore={resetSocketModel}
+            buttonLabel={"OK"}
+            />)
     
+    }
+
+    const views = {
+        billForm: <BillForm 
+            onSubmit={createTableBill}
+            onBack={tableAction.releaseTable}
+        />,
+        selectedBill: <BillSelectionView 
+            processingIndicator = {Processindicators.occupying}
+            table={table}
+            bills={table.bills} 
+            onBack={tableAction.releaseTable}
+            selectedBill={selectTableBill} />
     }
 
 
@@ -124,7 +133,6 @@ function DisplayTable ({table}) {
     return viewsModel.selectBill ? views.selectedBill: 
         
         <div className={style.tableContainer}>
-    
             <Header tableName={table.name}/>
             <Bill 
                 table={table} // 
@@ -132,17 +140,19 @@ function DisplayTable ({table}) {
                 handleCompleteAction={tableAction.releaseTable}
                 creatNewBill={onCreateNewBill}            
             />
-             
-               
-                    {Processindicators.creatingBill}
-                    {Processindicators.loadingBill}
-                    {Processindicators.UpdatingBill}
-                    {viewsModel.createBill && views.billForm}
-                </div>
+            
+                {Processindicators.creatingBill}
+                {Processindicators.loadingBill}
+                {Processindicators.UpdatingBill}
+                {viewsModel.createBill && views.billForm}
+        </div>
 }
 
 
-function BillSelectionView ({bills, selectedBill, table, onBack}) {
+function BillSelectionView ({bills, 
+    selectedBill, 
+    table, onBack,
+    processingIndicator}) {
     
     return <div className={style.chooseBillContainer}>
             <div className={style.topChooseBillContainer}>
@@ -159,7 +169,7 @@ function BillSelectionView ({bills, selectedBill, table, onBack}) {
                     bills.map((bill) =>  <BillCard key={bill.id} bill={bill}  onPress={selectedBill} />)  
                 }
             </div>
-       
+            {processingIndicator}
         </div>
 }
 

@@ -54,7 +54,7 @@ class TableStatus(models.Model):
 
 
     def __str__(self) -> str: 
-        return f"{self.table.name}, available: {self.available}"
+        return f"{self.table.name}, available: {self.status}"
 
 
 class Bill(models.Model):

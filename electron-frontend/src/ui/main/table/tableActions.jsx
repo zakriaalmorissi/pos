@@ -1,119 +1,159 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { updateTables } from "../../../dataProvider/tablesProvider/tablesProvider";
-import { cleanOrder, clearOrders } from "../../../dataProvider/orderProvider/orderSlice";
+import { clearOrders } from "../../../dataProvider/orderProvider/orderSlice";
 import { clearBill } from "../../../dataProvider/billProvider/billSilce";
-import { useReducer } from "react";
-
-
-export function usetableWebSocketReleasingListener (table) {
-     const user = JSON.parse(window.localStorage.getItem('user'));
-     const navigate = useNavigate()
-     const dispatch = useDispatch();
-
-    useEffect (()=> {
-        // Reeceive the release from the super admin or the admin
-        // this happens when the admin wants to make a force release to the table
-        const socket = new WebSocket('ws://localhost:8000/ws/release/');
-        socket.onmessage = (e) => {
-            const updatedUser = JSON.parse(e.data);
-            if (updatedUser.id === user.id && !updatedUser.has_tables) {
-                // Update the current table 
-                dispatch(updateTables(table));
-                navigate("/");  
-              
-            }
-        };
-
-        return () => {
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.close();
-            }
-        }
-
-    }, []);
-
-
-}
-
+import { SOCKET_URL } from "../../../network/constants";
+import { TABLE_ACTIONS } from "./tableConsistents";
 
 export function useTableWebSocket(table) {
-    const [ socketError, setSocketError ] = useState(null);
-    const [isProcessing, setIsProcessing] = useState({type: "occupying"});
-    const [data, setData] = useState(null);
-    const token = localStorage.getItem("accessToken")
-    const dispatch = useDispatch();
-    const navigate = useNavigate()
- 
+  const token = localStorage.getItem("accessToken");
 
-    useEffect(()=> {
-            occupyTable()
-        }, []);
-
-        const occupyTable = () => {
-            setIsProcessing({type: "occupying"})
-            const socket = new WebSocket(`ws://localhost:8000/ws/table/?token=${token}`);
-            socket.onopen = () => {
-                let updateTableStatus = {
-                    action: "occupy",
-                    payload: {...table, status: "occupied"}
-                }
-                socket.send(JSON.stringify(updateTableStatus));  
-            }
-            socket.onmessage = (event) => {
-                if (event.data === "occupied") setIsProcessing({type: ""});
-              
-            }
-
-            socket.onerror = (err) => {
-               setIsProcessing({"type": ""});
-               setSocketError("Failed to occupy the table");
-
-            }
-
-            dispatch(clearBill())
-            dispatch(clearOrders())
-
-        }
-
-        const releaseTable = ()  => {
-            setIsProcessing({type: "releasing"})
-            const socket = new WebSocket(`ws://localhost:8000/ws/table/?token=${token}`);
-            socket.onopen = () => {
-            let updateTableStatus = {
-                action: "release",
-                payload: {id: table?.id}
-            }
-            socket.send(JSON.stringify(updateTableStatus)); 
-        }
-
-            navigate("/home")
-        }
-
-   
-
-        useEffect(()=> {
-            const handleBeforeUnload =  (event) => {
-                releaseTable();
-                event.returnValue = '';
-            }
-            // these are not gonna be called unless the event listener has been called
-            window.addEventListener('beforeunload', handleBeforeUnload);
-            window.addEventListener('pagehide', handleBeforeUnload);
-
-            return () => {
-
-                window.removeEventListener('pagehide', handleBeforeUnload);
-                window.removeEventListener('beforeunload', handleBeforeUnload);
-
-         }
-         },[]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
 
-        const tableAction = {releaseTable: releaseTable, occupyTable: occupyTable,}
+  const [socketModel, setSocketModel] = useState({
+    action: TABLE_ACTIONS.OCCUPYING,
+    message: "Occupying table...",
+    failure: false,
+    failureMessage: "",
+  });
+
+  /* =========================
+     OCCUPY TABLE (ACTION)
+     ========================= */
+  useEffect(() => {
+    occupyTable();
+  
+  }, []);
+
+  function occupyTable() {
+    const socket = new WebSocket(`${SOCKET_URL}table/?token=${token}`);
+    // 
+    const timeout = setTimeout(() => {
+      socket.close();
+      setSocketModel({
+        action: "",
+        message: "",
+        failure: true,
+        failureMessage: "Server not responding",
+      });
+    }, 5000);
+
+    socket.onopen = () => {
+      socket.send(
+        JSON.stringify({
+          action: TABLE_ACTIONS.OCCUPY,
+          payload: {...table, status: TABLE_ACTIONS.OCCUPIED },
+        })
+      );
+    };
+
+    socket.onmessage = (event) => {
+        // clear the timer
+      clearTimeout(timeout);
+
+      if (event.data === TABLE_ACTIONS.OCCUPIED) {
+        setSocketModel({
+          action: TABLE_ACTIONS.OCCUPIED,
+          message: "",
+          failure: false,
+          failureMessage: "",
+        });
+
+        socket.close(1000, "done");
+        // handle the coming rejections
+      } else {
+        const error = event.data ?? "Unexpected server response";
+        setSocketModel({
+          action: "",
+          message: "",
+          failure: true,
+          failureMessage: error,
+        });
+      }
+    };
+
+    socket.onerror = () => {
+      clearTimeout(timeout);
+      setSocketModel({
+        action: "",
+        message: "",
+        failure: true,
+        failureMessage: "Connection failed",
+      });
+    };
+
+    socket.onclose = (e) => {
+      if (e.code === 1006) {
+        setSocketModel({
+          action: "",
+          message: "",
+          failure: true,
+          failureMessage: "Network lost while occupying table",
+        });
+      }
+    };
+  }
 
 
-    return {socketError, isProcessing, data, tableAction}
 
+  /* =========================
+     RELEASE TABLE (ACTION)
+     ========================= */
+  
+  function releaseTable() {
+  
+    const socket = new WebSocket(`${SOCKET_URL}table/?token=${token}`);
+    socket.onopen = () => {
+      socket.send(
+        JSON.stringify({
+          action: TABLE_ACTIONS.RELEASE,
+          payload: { id: table?.id },
+        })
+      );
+
+      socket.close(1000, "released");
+    };
+    // Navigate home anyway 
+    navigate("/home");
+  }
+
+  const resetSocketModel = () => {
+        setSocketModel({
+          action: "",
+          message: "",
+          failure: false,
+          failureMessage: "",
+        });
+
+  }
+
+  /* =========================
+     BROWSER CLOSE HANDLING
+     ========================= */
+  useEffect(() => {
+    const handleUnload = () => {
+      releaseTable();
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener("pagehide", handleUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+      window.removeEventListener("pagehide", handleUnload);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  return {
+    socketModel,
+    tableAction: {
+      occupyTable,
+      releaseTable,
+    },
+    resetSocketModel: resetSocketModel
+  };
 }

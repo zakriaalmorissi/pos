@@ -30,7 +30,7 @@ export default function useInitializeHomeData  () {
 
 
   const currentTables = useMemo(()=> {
-    console.log("Memo is called from the home component");
+    //console.log("Memo is called from the home component");
     // Break the process if there is no floors at all
      if (floors.length === 0) return [];
      // Get the latest fetched tables
@@ -47,7 +47,7 @@ export default function useInitializeHomeData  () {
   }
 
   useEffect(()=> {
-    console.log("Effect from home com ran")
+   // console.log("Effect from home com ran")
     if (selectedFloorId !== null) {
       localStorage.setItem("floorId", selectedFloorId);
     }

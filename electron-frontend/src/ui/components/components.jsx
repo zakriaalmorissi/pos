@@ -14,21 +14,19 @@ export function ProcessingIndicator ({isLoading, errorMessage, onIgnore, buttonL
   
 
 
-    return <div className="process-indicator-container">
+    return isLoading || errorMessage && <div className="process-indicator-container">
         <div className="process-indicator-body">
-           
            {
-             isLoading && !errorMessage && <div className='ongoing-indicator-container'> 
-            <p>{action}</p>
+            isLoading &&   <div className='ongoing-indicator-container'> 
+                <p>{action}</p>
             <div className="process-indicator">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
-              
             </div>
-         
            }
+        
             {
                 errorMessage && <div className="indicator-failure-container">
                     <p className='message-header'>Failure Message</p>
@@ -88,7 +86,9 @@ export function TimeoutErrorMessageIndicator ({message, resetState}) {
     useEffect(()=> {
        const timer = setTimeout(()=> {
         setShow(false);
-        resetState();
+        if (resetState && typeof resetState === "function") {
+            resetState();
+        }
         }, 4000)
 
 

@@ -5,6 +5,18 @@ from tables.models import Table, TableStatus
 from accounts.models import CustomUser
 from accounts.views import send_user_update
 from decimal import Decimal
+from enum import Enum
+
+
+class TableActions(Enum):
+    OCCUPIED = 'occupied'
+    OCCUPY = 'occupy'
+    AVAILABLE = 'available'
+    RELEASE = 'release'
+    RELEASED = 'released'
+    BUSY = 'busy'
+
+
 
 def make_json_safe(data):
     if isinstance(data, dict):
@@ -19,7 +31,6 @@ def make_json_safe(data):
 class TableConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         user = self.scope["user"]
-        print(user)
         if not user.is_authenticated:
             self.close()
         else:
@@ -37,12 +48,14 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
             action = event.get("action")
             data = event.get("payload")
             if data: 
-                if action == "occupy":
-                    await self.occupy_table(data=data)
-                if action == "release":
-                    await self.release_table(data=data)
-                if action == "busy":
-                    await self.mark_table_as_busy(data=data)
+                table = await self.get_table(data.get("id"))
+                if action == TableActions.OCCUPY.value and table:
+                    await self.occupy_table(table=table)
+                elif action == TableActions.RELEASE.value and table:
+                    await self.release_table(table=table)
+                else: 
+                    await self.send(f"Failed to {action} the table")
+                
         except json.JSONDecodeError as e:
             print(e)
 
@@ -52,13 +65,11 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
 
 
 
-    async def occupy_table(self, data: dict):
-        pk = data.get('id')
-        table = await self.get_table(pk)
+    async def occupy_table(self, table: Table):
         table_status = await self.get_table_status(table.id)
         user =  self.scope["user"]
-        if table and table_status:
-            table_status.status = "occupied"
+        if table_status:
+            table_status.status = TableActions.OCCUPIED.value
             table_status.note = f"Table is Occupied by {user.username}"
             await self.save_table_status(table_status)
             table.user = user
@@ -69,17 +80,18 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                     "type": "table.update", "data": saved_table
                 }
             )
+            await self.send(TableActions.OCCUPIED.value)
             # Send the occupy update to the admin dashboard 
             await  self.send_table_update_to_admin()
+        else:
+            await self.send("Table Failed to occupy table")
 
         
 
-    async def release_table(self, data): 
-        pk = data.get("id")
-        table: Table = await self.get_table(pk)
+    async def release_table(self, table:Table): 
         table_status: TableStatus = await self.get_table_status(table.id)
         if table and table_status: 
-            table_status.status = "available"
+            table_status.status = TableActions.AVAILABLE.value
             table_status.note = ""
             await self.save_table_status(table_status)
             table.user = None
@@ -92,32 +104,12 @@ class TableConsumer(AsyncJsonWebsocketConsumer):
                 }
             )
             # Send this release update to the admin management dashboard
+            await self.send(TableActions.RELEASED.value)
             await self.send_table_update_to_admin()
+        else:
+            await self.send("Table Failed to release table")
     
-
-    async def mark_table_as_busy(self, data: dict):
-        pk: int = data.get("id")
-        table: Table = await self.get_table(pk)
-        table_status: TableStatus = await self.get_table_status(table.pk)
-        if table and table_status:
-            table_status.status = "busy"
-            table_status.note = data.get("note", "")
-            await self.save_table_status(table_status)
-            table.user = None
-            await  self.delete_empty_table_bill(table=table)
-            saved_table = await self.save_table(table=table)
-            await self.channel_layer.group_send(
-                "tables",
-                {
-                    "type": "table.update", "data": saved_table
-                }
-            )
-            # Send this release update to the admin management dashboard
-            await self.send_table_update_to_admin()
-
-        
-
-        
+    
 
     async def send_table_update_to_admin(self) -> None:
         """

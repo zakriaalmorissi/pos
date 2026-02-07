@@ -1,5 +1,4 @@
 from .models import Order, Table
-from accounts.views import send_user_update
 from .serializers import *
 from rest_framework import status
 from rest_framework.decorators import permission_classes, authentication_classes
@@ -53,7 +52,6 @@ def validate_and_create_floor(data: dict) -> Response:
     return Response({"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
     
     
-
 
 
     
