@@ -5,7 +5,7 @@ import { TableProvider, TableContext} from "../provider/provider.jsx"
 import { Header } from "./Header.jsx";
 import { Bill } from "../components/bill/Bill.jsx";
 import { StepBackIcon} from "lucide-react";
-import { ProcessingIndicator} from "../../components/components.jsx";
+import { ProcessingIndicator, TimeoutErrorMessageIndicator} from "../../components/components.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import BillForm from "../components/bill/billForm.jsx";
 import { createBill, fetchBill} from "../../../dataProvider/billProvider/billSilce.js";
@@ -61,7 +61,8 @@ function DisplayTable ({table}) {
         bill, 
         loading, loadingBillError, 
         creatingBill, 
-        creatingBillError
+        creatingBillError,
+        updateError
     } = useSelector((state)=> state.bill);
 
     // Fetch the bill if only one exists
@@ -92,19 +93,23 @@ function DisplayTable ({table}) {
     }
 
     const Processindicators = {
-        "creatingBill": creatingBill && <ProcessingIndicator 
+        creatingBill: <ProcessingIndicator 
             isLoading={creatingBill}
-            errorMessage={creatingBillError?.message}
+            errorMessage={creatingBillError}
             onIgnore={billFailure}
         
         />,
-        "loadingBill": <ProcessingIndicator 
+        loadingBill:<ProcessingIndicator 
                             isLoading={loading}
                             errorMessage={loadingBillError}
                             onIgnore={billFailure}
                             
                         />,
-        "UpdatingBill": null,
+        
+        updatingBillError: updateError && (<TimeoutErrorMessageIndicator 
+            message={updateError}
+        
+        />),
         occupying: (<ProcessingIndicator 
             isLoading={socketModel.action === TABLE_ACTIONS.OCCUPYING}
             action={socketModel.message}
@@ -133,7 +138,10 @@ function DisplayTable ({table}) {
     return viewsModel.selectBill ? views.selectedBill: 
         
         <div className={style.tableContainer}>
-            <Header tableName={table.name}/>
+            <Header 
+                tableName={table.name}
+                bill={bill}
+                />
             <Bill 
                 table={table} // 
                 orderStatus={orderStatus} 
@@ -144,6 +152,7 @@ function DisplayTable ({table}) {
                 {Processindicators.creatingBill}
                 {Processindicators.loadingBill}
                 {Processindicators.UpdatingBill}
+                {Processindicators.updatingBillError}
                 {viewsModel.createBill && views.billForm}
         </div>
 }

@@ -3,13 +3,11 @@ import style from './../style/table.module.css';
 import { useContext, useState } from "react";
 import { TableContext } from "../provider/provider.jsx";
 import { NumericKeyBoard } from "../components/components.jsx";
-import { TimeoutErrorMessageIndicator } from "../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import { updateBill } from "../../../dataProvider/billProvider/billSilce.js";
 
 
-export function Header ({tableName}) {
-    const {bill, updateError} = useSelector((state)=> state.bill)
+export function Header ({tableName, bill}) {
     const {orderStatus, changeOrderStatus} = useContext(TableContext);
     const [dispalyNumericKeyboard, setDisplayNumericKeyboard] = useState(false);
     const dispatch = useDispatch();

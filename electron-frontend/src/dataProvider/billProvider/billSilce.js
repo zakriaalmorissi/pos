@@ -1,7 +1,17 @@
 import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
-import { fetchData, postData,  updateData } from "./../../network/api";
+import { fetchData } from "./../../network/api";
+import api from "../../network/API";
 import { url } from "./../../network/constants";
 import { cleanOrder } from "../orderProvider/orderSlice";
+import { AwardIcon, Option } from "lucide-react";
+
+
+
+
+
+
+
+
 
 
 // Create a bort controller to avoid late responses that causes memory leak and unwanted results;
@@ -16,61 +26,59 @@ const abortFetchingBill = () => {
 
 export const fetchBill =  createAsyncThunk(
     "bill/fetchbill",
-    async (billId) => {
+    async (billId, {rejectWithValue}) => {
         billController = new AbortController();
-        return new Promise((reslove, reject) => {
-          fetchData(
-                `${url}api/bill/${billId}/`,
-                {
-                    getData: (res) => reslove(res),
-                    apiError: (err) => reject(err)
-                },
-                undefined,
-                billController,
-               
-            );
-        });
+        const URL =  `${url}api/bill/${billId}/`;
+        try {
+           const response = await api.get({
+            url: URL,
+            controller: billController
+           })
+        
+        return response;
+
+        } catch (error) {
+            console.log(error);
+            return rejectWithValue(error);
+        }
     }
 );
 
 
 export const createBill = createAsyncThunk(
     'bill/createBill',
-    async( data ) => {
-            return new Promise((reslove, reject)  => {
-                    postData(
-                        `${url}api/create-bill/`,
-                        {
-                         data: data,
-                         getResponse: (res) => {
-                            if (res.status === "ok"){
-                                reslove(res)
-                            } else {
-                                reject(res)
-                             }
-                        },
-                        }
-                    );
-            });
+    async( data ,{rejectWithValue}) => {
+         const URL =  `${url}api/create-bill/`;
+         try {
+            const response = await api.post({
+                url: URL,
+                data: data
+            })
+            return response; // already parsed from json format 
+         } catch (error) {
+            // return my customized error messages
+           return rejectWithValue(error)
+         }
+         
         }
 )
 
 export const updateBill = createAsyncThunk(
     'bill/updateBill',
-    ({billId, data}) => {
-        return new Promise((reslove, reject) => {
-            updateData(
-                `${url}api/bill/${billId}/`,
-                {
-                    data: data,
-                    callbacks: {
-                        getResponse: (res) => reslove(res),
-                        apiError: (error) => reject(error)
-                    }
-                }
-            );
+   async ({billId, data}, {rejectWithValue}) => {
+        const URL =  `${url}api/bill/${billId}/`;
+        console.log(data);
+        try {
+          const response = await api.put({
+            url: URL,
+            data: data,
+          })
+        return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
 
-        });
+     
     }
 
 )
@@ -107,44 +115,52 @@ const billSlice = createSlice({
         builder.addCase(fetchBill.pending, (state) => {
             if (state.bill) return;
             state.loading = true;
-        
+    
         })
         .addCase(fetchBill.fulfilled, (state, action)=> {
-            state.bill = action.payload.data;
-            state.orders = action.payload.data.orders?.map(order => cleanOrder(order)) || [];
+            state.bill = action.payload;
+            state.orders = action.payload.orders?.map(order => cleanOrder(order)) || [];
             state.loading = false;
         })
         .addCase(fetchBill.rejected, (state, action) => {
-            state.loadingBillError = `Failed to fetch bill due to ${action.error?.message}`;
+            state.loadingBillError = `Failed to fetch bill due to ${action.payload?.message}`;
             console.log(action)
 
         });
         // Create bill
         builder.addCase(createBill.pending, (state)=> {
             state.creatingBill = true;
+            state.creatingBillError = null;
 
         })
         .addCase(createBill.fulfilled, (state, action)=> {
-            state.bill = action.payload.data;
+            state.bill = action.payload;
+            console.log(action)
             state.creatingBill = false;
         })
         .addCase(createBill.rejected, (state, action)=> {
-            state.creatingBillError = action.error
+            state.creatingBill = false;
+            const error = `Oops.. Failed to create a bill. ${action.payload?.hint ?? "Unexpected Error happened"}`;
+            state.creatingBillError = error;
 
         })
 
         // Update bill 
         builder.addCase(updateBill.pending, (state)=> {
             state.loadingUpdate = true;
+            state.updateError = null;
 
         })
         .addCase(updateBill.fulfilled, (state, action)=> {
             state.loadingUpdate = false;
-            state.bill = {...state.bill, customer_number: action.payload.data.customer_number}
+            console.log(action)
+            state.bill = {...state.bill, customer_number: action.payload?.customer_number}
         })
         .addCase (updateBill.rejected, (state, action)=> {
-            state.updateError = action.error.message
-            console.log(state.updateError)
+            const error = `Oops... Failed to update the bill. ${action.payload?.hint ?? ""}`;
+            state.updateError = error;
+            state.loadingUpdate = false
+
         })
 
 
