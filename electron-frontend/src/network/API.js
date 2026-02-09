@@ -1,4 +1,18 @@
 
+export class NetworkError extends Error {
+  constructor(message = "Network Error", hint) {
+    super(message);
+    this.name = new.target.name;
+    this.hint = hint;
+  }
+}
+
+export class AbortRequestError extends Error {
+  constructor() {
+    super("Request was aborted");
+    this.name = new.target.name;
+  }
+}
 
 const buildErrorResponse = async (response) => {
   const status = response.status ?? 500;
@@ -67,8 +81,16 @@ const request = async ({
     config.body = JSON.stringify(data);
     headers["Content-Type"] = "application/json";
   }
+  let response;
+  try {
+    response = await fetch(url, config);
 
-  const response = await fetch(url, config);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new AbortRequestError();
+    }
+    throw new NetworkError("Network lost", "We lost the connection!");
+  }
 
   if (!response.ok) {
     throw await buildErrorResponse(response);

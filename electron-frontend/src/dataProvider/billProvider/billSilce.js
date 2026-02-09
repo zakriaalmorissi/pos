@@ -3,10 +3,7 @@ import { fetchData } from "./../../network/api";
 import api from "../../network/API";
 import { url } from "./../../network/constants";
 import { cleanOrder } from "../orderProvider/orderSlice";
-import { AwardIcon, Option } from "lucide-react";
-
-
-
+import { NetworkError, AbortRequestError } from "../../network/API";
 
 
 
@@ -38,8 +35,16 @@ export const fetchBill =  createAsyncThunk(
         return response;
 
         } catch (error) {
-            console.log(error);
-            return rejectWithValue(error);
+            if (error instanceof NetworkError) {
+                const rejectValue = {message: error.message, hint: error.hint};
+                return rejectWithValue(rejectValue);
+            }
+            if (error instanceof AbortRequestError) {
+                return  rejectWithValue({message: error?.message ?? "Request was aborted"});
+            }
+           return rejectWithValue(error);
+
+           
         }
     }
 );
@@ -56,6 +61,10 @@ export const createBill = createAsyncThunk(
             })
             return response; // already parsed from json format 
          } catch (error) {
+            if (error instanceof NetworkError) {
+                const rejectValue = {message: error.message, hint: error.hint};
+                return rejectWithValue(rejectValue);
+            }
             // return my customized error messages
            return rejectWithValue(error)
          }
@@ -115,6 +124,7 @@ const billSlice = createSlice({
         builder.addCase(fetchBill.pending, (state) => {
             if (state.bill) return;
             state.loading = true;
+            state.loadingBillError = null;
     
         })
         .addCase(fetchBill.fulfilled, (state, action)=> {
@@ -123,8 +133,8 @@ const billSlice = createSlice({
             state.loading = false;
         })
         .addCase(fetchBill.rejected, (state, action) => {
-            state.loadingBillError = `Failed to fetch bill due to ${action.payload?.message}`;
-            console.log(action)
+            state.loadingBillError = `Failed to fetch bill. ${action.payload?.hint ?? ""}`;
+            state.loading = false;
 
         });
         // Create bill

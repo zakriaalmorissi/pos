@@ -14,7 +14,7 @@ export function ProcessingIndicator ({isLoading, errorMessage, onIgnore, buttonL
   
 
 
-    return isLoading || errorMessage && <div className="process-indicator-container">
+    return (isLoading || errorMessage) && <div className="process-indicator-container">
         <div className="process-indicator-body">
            {
             isLoading &&   <div className='ongoing-indicator-container'> 

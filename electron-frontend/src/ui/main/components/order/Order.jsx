@@ -6,6 +6,8 @@ import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } fro
 import { useSelector, useDispatch } from "react-redux";
 import { updateOrder, deleteOrder, writeOrderNotes, cleanOrder, fetchOrders } from "../../../../dataProvider/orderProvider/orderSlice.js";
 import { fetchBill } from "../../../../dataProvider/billProvider/billSilce.js";
+import { TABLE_STATES } from "../../../../network/constants.js";
+import { ORDER_STATES } from "./constants.js";
 
 
 
@@ -69,17 +71,18 @@ export function Orders() {
 
 function OrderCard({order}) {
     const [activePopUp, setActivePopUp] = useState('');
-    const [isProcessing, setIsProcessing] = useState(false);
     const [warningModel, setWarningModel] = useState({ 
         show: false,
         message: "",
         data: null,
         onContinue: null
     });
-    const [errorMessageModel, setErrorMessageModel] = useState({
-        show: false,
-        message: null,
-        onIgnore: null,
+    const [processingModel, setProcessingModel] = useState({
+        type: null,
+        processing: false,
+        processingMessage: null,
+        failure: false,
+        failureMessage: null
     })
 
 
@@ -96,20 +99,6 @@ function OrderCard({order}) {
         })
     }
 
-    const hideErrorMessage = ()=> {
-        setErrorMessageModel({
-            show: false,
-            message: null,
-            onIgnore: null,
-        })
-
-    }
-
-    const hideProcessingIndicator  = ()=> {
-        // As long as error message is embeded withen the process indicator we are gonna hide both
-        setIsProcessing(false);
-        hideErrorMessage();
-    }
 
     // Manage order Deleting // Bill related 
     const processOrderDelete = () => {
@@ -130,18 +119,28 @@ function OrderCard({order}) {
     // Order modification and managements
     const onDeleteOrder = async () => {
         hideWarning();
-        setIsProcessing(true);
+        setProcessingModel({
+            type: ORDER_STATES.DELETING,
+            processing: true,
+            processingMessage: "Deleting order ...",
+            failure: false,
+            failureMessage: null
+        })
+        
         setActivePopUp("");
         try {
             await dispatch(deleteOrder(order?.id)).unwrap();
             await  dispatch(fetchBill(bill?.id)).unwrap();
-            setIsProcessing(false);
+            setProcessingModel(prev => ({...prev, type: null, processing: false, processingMessage: null}))
 
         } catch (error) {
-            setErrorMessageModel({
-                message: error.message,
-                onIgnore: hideProcessingIndicator
-            })
+            console.log(error.hint)
+            setProcessingModel(prev => ({
+                ...prev, 
+                processing: false,
+                failure: true,
+                failureMessage: `Failed to delete the order. ${error?.hint ?? ""}`
+            }));
         }     
         
     }
@@ -196,11 +195,7 @@ function OrderCard({order}) {
         dispatch(writeOrderNotes(cleanedOrder));
 
         } catch (err) {
-            setErrorMessageModel({
-                            show: true,
-                            message: `Ooops.. Failed to make add condiment due to ${err.message}`,
-                            onIgnor: null,
-                        })
+    
         }
         // 
         setActivePopUp("");   
@@ -243,6 +238,21 @@ function OrderCard({order}) {
                 />
             )
     
+    }
+
+    const Indicators = {
+        onDeleting: processingModel.type === ORDER_STATES.DELETING &&(<ProcessingIndicator 
+            isLoading={processingModel.processing}
+            action={processingModel.processingMessage}
+            errorMessage={processingModel.failure && processingModel.failureMessage}
+            onIgnore={() => setProcessingModel({
+                type: null,
+                processing: false,
+                failure: false
+            })}
+            onRetry={onDeleteOrder}
+
+        />)
     }
     return <div className={style.orderCard}>
         <div>
@@ -309,17 +319,7 @@ function OrderCard({order}) {
                 message={warningModel.message}
                 />
         }  
-        {
-            isProcessing && <ProcessingIndicator 
-                isLoading={isProcessing}
-                message={errorMessageModel.message}
-                onIgnore={errorMessageModel.onIgnore}
-            
-            />
-        } 
-        {
-            errorMessageModel.show && <TimeoutErrorMessageIndicator message={errorMessageModel.message}/>
-        }
+        {Indicators.onDeleting}
       
     </div>
 

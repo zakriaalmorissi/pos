@@ -2,27 +2,27 @@ import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import { fetchData, updateData , postData, deleteData} from "./../../network/api";
 import { url } from "./../../network/constants";
 import { fetchBill } from "../billProvider/billSilce";
+import api, { NetworkError } from "../../network/API";
 
 // ✅ Update order (price, quantity, condiments, etc.)
 
 export const updateOrder = createAsyncThunk(
   "order/updateOrder",
-  async ({ orderId, billId, data}, {dispatch}) => {
-    return new Promise((resolve, reject) => {
-      updateData(
-        `${url}api/order-view/${orderId}/`,
-        {
-          data: data,
-          callbacks: {
-            getResponse: (res) => {
-              // After updating → refresh bill
-              resolve(res);
-            },
-            apiError: (err) => reject(err),
-          },
-        }
-      );
-    });
+  async ({ orderId, data}, {rejectWithValue}) => {
+    const URL =   `${url}api/order-view/${orderId}/`;
+    try {
+      const response = await api.put({
+        url: URL,
+        data: data
+      })
+
+      return response;
+    } catch (error) {
+      if (error instanceof NetworkError) {
+        return rejectWithValue({message: error.message, hint: error.hint});
+      }
+      return rejectWithValue(error);
+    }
   }
 );
 
@@ -31,22 +31,21 @@ export const updateOrder = createAsyncThunk(
 
 export const createOrder = createAsyncThunk(
     "order/createOrder",
-   async ({data}) => {
-        return new Promise((resolve, reject)=> {
-            postData(
-                `${url}api/create-order/`,
-                {
-                    data: data,
-                    getResponse: (res) => {
-                        if (res.status === "ok"){
-                            resolve(res);
-                        } else {
-                            reject(res);
-                        }
-                    }
-                }
-            )
+   async ({data}, {rejectWithValue}) => {
+      const URL = `${url}api/create-order/`;
+      try {
+        const response = await api.post({
+          url: URL,
+          data: data
         })
+
+      return response;
+       } catch (error) {
+      if (error instanceof NetworkError) {
+            return rejectWithValue({message: error.message, hint: error.hint});
+          }
+          return rejectWithValue(error);
+    }
    }
 )
 
@@ -62,43 +61,44 @@ export const abortFetchingOrder = () => {
 
 export const fetchOrders = createAsyncThunk(
     "order/fetchOrders",
-    async (billId) => {
+    async (billId, {rejectWithValue}) => {
     controller = new AbortController();
-        return new Promise((resolve, reject)=> {
-            fetchData(
-                `${url}api/orders-view/${billId}/`,
-                {
-                  getData: (res)=> resolve(res),
-                  apiError: (error) => reject(error)
-                },
-                undefined,
-                controller,
-            )
-        })
+    const URL =   `${url}api/orders-view/${billId}/`;
+    try {
+      const response = await api.get({
+        url: URL,
+        controller: controller
+      })
+
+      return response;
+    } catch (error) {
+      if (error instanceof NetworkError) {
+        return rejectWithValue({message: error.message, hint: error.hint});
+      }
+      return rejectWithValue(error);
+    }
     }
 );
 
 
 export const deleteOrder = createAsyncThunk (
   "order/deleteOrder",
-  async (orderId, {dispatch}) => {
-    return new Promise((resolve, reject)=> {
-       deleteData(
-        `${url}api/order-view/${orderId}/`,
-        {
-          data: {id: orderId},
-          callbacks: {
-            getResponse: (res) => {
-              dispatch(removeOrder(orderId));
-              resolve(res);
-            },
-            apiError: (err) => reject(err)
-
-          }
-        }
-       )
-
-    });
+  async (orderId, {dispatch, rejectWithValue}) => {
+    const URL =   `${url}api/order-view/${orderId}/`;
+    try {
+      const response = await api.delete({
+        url: URL,
+        data: {id: orderId}
+      })
+       dispatch(removeOrder(orderId));
+      return response;
+    } catch (error) {
+      console.log(error)
+      if (error instanceof NetworkError) {
+        return rejectWithValue({message: error.message, hint: error.hint});
+      }
+      return rejectWithValue(error);
+    }
   }
 );
 
@@ -189,41 +189,44 @@ const orderSlice = createSlice({
         })
         .addCase(fetchOrders.fulfilled, (state, action)=> {
           state.orders = [];
-            state.orders = action.payload.data.map((order)=> {
+            state.orders = action.payload.map((order)=> {
               return cleanOrder(order);
             });
             state.orderLoading = false;
         })
         .addCase(fetchOrders.rejected, (state, action)=> {
             state.orders = [];
-            state.orderError = action.error;
+            state.orderError = `Failed get orders. ${action.payload?.hint ?? ""}`;
+            state.orderLoading = false;
           
         })
         // create Order 
         builder.addCase(createOrder.pending, (state)=> {
             state.orderError = null;
-            ///
+
         })
         .addCase(createOrder.fulfilled, (state, action)=> {
-            const order = action.payload.data;
+            const order = action.payload;
             state.orders.push(cleanOrder(order));
           
         })
         .addCase(createOrder.rejected, (state, action)=> {
-            state.orderError = `Failed to make order due to ${action.error.message}`;
-            console.log(action);
+            state.orderError = `Failed to make order due to ${action.payload?.hint?? ""}`;
+            state.orderLoading = false;
+  
         })
 
         // update order 
         builder.addCase(updateOrder.fulfilled, (state, action)=> {
-            let newOrder = action.payload.data;
+            let newOrder = action.payload;
             state.orders = state.orders.map((order) => order.id === newOrder.id ?
               cleanOrder(newOrder): order)
 
 
         })
         .addCase(updateOrder.rejected, (state, action)=> {
-            console.log(action.error);
+          state.orderError = `Failed to update the order. ${action.payload?.hint?? ""}`;
+
         })
     }
 
