@@ -2,7 +2,6 @@ import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import { fetchData } from "./../../network/api";
 import api from "../../network/API";
 import { url } from "./../../network/constants";
-import { cleanOrder } from "../orderProvider/orderSlice";
 import { NetworkError, AbortRequestError } from "../../network/API";
 
 
@@ -96,7 +95,6 @@ const billSlice = createSlice({
     name: "bill",
     initialState: {
         bill: null,
-        orders: [],
         loading: false, 
         loadingBillError: null, 
         creatingBill: false, 
@@ -110,14 +108,12 @@ const billSlice = createSlice({
             state.loadingBillError = null;
             state.creatingBillError = null;
             state.updateError = null;
-            state.orders = [];
             state.loading = false;
             state.creatingBill = false;
             state.loadingUpdate = false;
         },
         overrideBill: (state, action) => {
             state.bill = action.payload;
-            state.orders = action.payload.orders?.map(order => cleanOrder(order)) || [];
         }
     },
     extraReducers: (builder) => {
@@ -129,7 +125,6 @@ const billSlice = createSlice({
         })
         .addCase(fetchBill.fulfilled, (state, action)=> {
             state.bill = action.payload;
-            state.orders = action.payload.orders?.map(order => cleanOrder(order)) || [];
             state.loading = false;
         })
         .addCase(fetchBill.rejected, (state, action) => {
@@ -163,7 +158,6 @@ const billSlice = createSlice({
         })
         .addCase(updateBill.fulfilled, (state, action)=> {
             state.loadingUpdate = false;
-            console.log(action)
             state.bill = {...state.bill, customer_number: action.payload?.customer_number}
         })
         .addCase (updateBill.rejected, (state, action)=> {

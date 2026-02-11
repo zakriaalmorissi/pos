@@ -1,17 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchData } from "./../../network/api";
 import { url } from "./../../network/constants";
-
+import api, { NetworkError } from "../../network/API";
 // Async thunk to fetch system data
 export const fetchMenu = createAsyncThunk(
   "menu/fetchMenu",
-  async () => {
-    return new Promise((resolve, reject) => {
-      fetchData(`${url}menu-view/`, {
-        getData: (res) => resolve(res),
-        apiError: (err) => reject(err),
-      });
-    });
+  async (__,{rejectWithValue}) => {
+    const URL = `${url}menu-view/`;
+    try {
+      const response = await api.get({url: URL});
+      return response;
+    } catch (error) {
+      if (error instanceof NetworkError) {
+        return rejectWithValue({message: error.message, hint: error?.hint});
+      }
+      return rejectWithValue(error);
+    }
   }
 );
 
@@ -71,12 +74,12 @@ const menuSlice = createSlice({
             state.loadingMenu = true;
         })
         .addCase(fetchMenu.fulfilled, (state, action)=> {
-            state.menu = cleanMenu(action.payload.data);
+            state.menu = cleanMenu(action.payload);
             state.loadingMenu = false;
     
         })
         .addCase(fetchMenu.rejected, (state, action)=> {
-            state.loadingMenuError = `Oooops ... failed to load Menu due to ${action.error.message}`;
+            state.loadingMenuError = `Oooops ... failed to load Menu due to ${action.payload?.hint}`;
 
         })
     }

@@ -1,29 +1,37 @@
-import { useState , useEffect, useContext} from "react";
+import { useState , useEffect, useContext, useMemo} from "react";
 import style from './order.module.css';
-import { LoadingSpinner } from "../components.jsx";
 import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "../components.jsx";
 import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import { updateOrder, deleteOrder, writeOrderNotes, cleanOrder, fetchOrders } from "../../../../dataProvider/orderProvider/orderSlice.js";
-import { fetchBill } from "../../../../dataProvider/billProvider/billSilce.js";
-import { TABLE_STATES } from "../../../../network/constants.js";
 import { ORDER_STATES } from "./constants.js";
+import useOrderHook from "./useOrder.jsx";
 
 
 
 // this function needs to have a call back function to perform some necessary  updates to the parent component
 export function Orders() {
     // Need to get bill updated according the ui the order events
-    const {bill} =  useSelector(s => s.bill);
-    const {orderError } = useSelector(s => s.order);
-    const dispatch = useDispatch();
-    const {orders, orderLoading } = useSelector( s => s.order)
+    const {bill, orderProcessing, loadOrders, resetOrderProcessing, orderActions} = useOrderHook();
+    const {orders} = useSelector( s => s.order)
 
-    useEffect (() => {
-        if (!bill?.id) return;
-        dispatch(fetchOrders(bill?.id))
-    }, [bill?.id,])
+  
 
+    const Indicators = {
+        gettingOrders: orderProcessing.type === ORDER_STATES.GETTING && (
+            <ProcessingIndicator 
+                isLoading={orderProcessing.processing}
+                action={orderProcessing.processingMessage}
+                errorMessage={orderProcessing.failure && orderProcessing.failureMessage}
+                onIgnore={resetOrderProcessing}
+                onRetry={loadOrders}
+            />),
+        onDeleting: orderProcessing.type === ORDER_STATES.DELETING &&(<ProcessingIndicator 
+            isLoading={orderProcessing.processing}
+            action={orderProcessing.processingMessage}
+            errorMessage={orderProcessing.failure && orderProcessing.failureMessage}
+            onIgnore={resetOrderProcessing}
+        />)
+    }
     // Override the client name 
     return  <div className={style.ordersContainer}>
         <div className={style.ordersTopContent}>
@@ -35,6 +43,8 @@ export function Orders() {
                        return <OrderCard 
                             key={order?.id}
                             order={order}
+                            bill={bill}
+                            orderActions = {orderActions}
                         />
                     })
                 }
@@ -51,45 +61,33 @@ export function Orders() {
             {
               bill &&  <div className={style.valuesContainer}>
                     <div className={style.subtotalContainer}> 
-                        <p>{bill?.orders_length}</p>
+                        <p>{bill?.ordersLength}</p>
                         <p className={style.subtotal}>{bill?.total}</p>
                     </div>
                     <div className={style.valuesContent}> 
-                        <p>{bill?.read_only_discount.toFixed(2)}</p>
-                        <p>{bill?.service_charge.toFixed(2)}</p>
-                        <p>{bill?.tax.toFixed(2)}</p>
-                        <p className={style.total}>{bill?.final_price.toFixed(2)}</p>
+                        <p>{bill?.discount}</p>
+                        <p>{bill.serviceCharge}</p>
+                        <p>{bill.tax}</p>
+                        <p className={style.total}>{bill.finalPrice}</p>
                     </div> 
                 </div>
 
             }
-            {orderError && <TimeoutErrorMessageIndicator message={orderError?.message}/>}
+            {Indicators.gettingOrders}
+            {Indicators.onDeleting}
         </div>
     </div>
 }
 
 
-function OrderCard({order}) {
-    const [activePopUp, setActivePopUp] = useState('');
+function OrderCard({order, bill, orderActions}) {
+    const [activePopUp, setActivePopUp] = useState(null);
     const [warningModel, setWarningModel] = useState({ 
         show: false,
         message: "",
-        data: null,
-        onContinue: null
+        orderId: null
     });
-    const [processingModel, setProcessingModel] = useState({
-        type: null,
-        processing: false,
-        processingMessage: null,
-        failure: false,
-        failureMessage: null
-    })
-
-
-    const { bill } = useSelector( s => s.bill);
-    const dispatch = useDispatch();
-
-    
+  
     const hideWarning = () => {
         setWarningModel({
             show: false,
@@ -99,176 +97,89 @@ function OrderCard({order}) {
         })
     }
 
+    const hideActivePopUp = () => {
+        if (!activePopUp)  return; 
+        setActivePopUp(null);
+    }
+    // Order modification and managements
+    const onDeleteOrder = async () => {
+        hideWarning();
+        hideActivePopUp();
+        await orderActions.delete(order);
 
+    }
     // Manage order Deleting // Bill related 
     const processOrderDelete = () => {
         if (order.isOrdered) {
             setWarningModel({
                 show: true,
                 message: `The ${order.name} is already delivered . Are you sure you want to delete this item ?`,
-                data: order,
-                onContinue:  onDeleteOrder,
+                orderId: order?.id
             })
-            return;
+           
+        } else {
+            onDeleteOrder();
         }
-        // If the order is not delivered, call the delete fun without warning
-        onDeleteOrder();
     }
 
 
-    // Order modification and managements
-    const onDeleteOrder = async () => {
-        hideWarning();
-        setProcessingModel({
-            type: ORDER_STATES.DELETING,
-            processing: true,
-            processingMessage: "Deleting order ...",
-            failure: false,
-            failureMessage: null
-        })
-        
-        setActivePopUp("");
-        try {
-            await dispatch(deleteOrder(order?.id)).unwrap();
-            await  dispatch(fetchBill(bill?.id)).unwrap();
-            setProcessingModel(prev => ({...prev, type: null, processing: false, processingMessage: null}))
-
-        } catch (error) {
-            console.log(error.hint)
-            setProcessingModel(prev => ({
-                ...prev, 
-                processing: false,
-                failure: true,
-                failureMessage: `Failed to delete the order. ${error?.hint ?? ""}`
-            }));
-        }     
-        
-    }
-
-  
-
-    // Overriding the price problem // bill related 
-    const overridePrice = (value)=> {
-        dispatch(updateOrder({orderId: order?.id, data:{price: value}}),);
-        dispatch(fetchBill(bill?.id));
-        setActivePopUp("");
-        
-    }
-
-    // Overriding the quantity -> bill related 
-    const overrideQuantity = async (number) => {
-        setActivePopUp("");
-        if (number === order?.quantity) {
-            return;
-        }
-        // if the order update went succefully , refetch the bill
-        try {
-
-            await dispatch(updateOrder({orderId: order?.id, data: { quantity: number}})).unwrap();
-            dispatch(fetchBill(bill?.id)).unwrap();
-
-        } catch (err) {
-            console.log(err)
-        }
-
-    }
 
 
-    // Handle line mark and add condiments functionalities 
-    const getOrderNotes =  async (values) => {
-        const condiments = Object.values(values).filter(value => value !== "").join("," + '\n');
-        if (condiments === "") {
-            setActivePopUp("");
-            return;
-        }
 
-        try {
-
-        // Send the update to the backend
-        const updated = await dispatch(updateOrder({
-            orderId: order?.id, 
-            data: {condiments: condiments}
-            })).unwrap();
-
-        // Update the current state after successfully update
-        const cleanedOrder = cleanOrder(updated.data);
-        dispatch(writeOrderNotes(cleanedOrder));
-
-        } catch (err) {
-    
-        }
-        // 
-        setActivePopUp("");   
-    }
-
-
-    const popUpViews = {
+    const popUpViews = useMemo(()=> {
+      return  {
             "order-options": (
                 <OrderOptions 
                     onDelete={processOrderDelete}
                     overridePrice={()=> setActivePopUp("numeric-keyboard")}
                     lineMark={()=> setActivePopUp('line-mark')}
                     addCondiments={()=> setActivePopUp('condimentsComponent')}
-                    overrideQuantity={overrideQuantity}
+                    overrideQuantity={(ordr)=>  {hideActivePopUp(),orderActions.update(ordr)}}
                     order={order}
-                    navigateBack={() => setActivePopUp("")}
+                    navigateBack={hideActivePopUp}
                 
                 />
             ),
             condimentsComponent: (
                 <CondimentsComponent 
                     order={order}
-                    onBack={()=> setActivePopUp("")}
-                    onSave={getOrderNotes}
+                    onBack={hideActivePopUp}
+                    onSave={(ordr) => {hideActivePopUp(); orderActions.update(ordr)}}
                 
                 />
             ),
             "line-mark": (
                 <LineMarkComponent
-                    onBack={()=> setActivePopUp('')}
-                    onSave={getOrderNotes}
+                    order = {order}
+                    onBack={hideActivePopUp}
+                    onSave={(ordr)=>  {hideActivePopUp(); orderActions.update(ordr)}}
                 />),
             "numeric-keyboard": (
                 <NumericKeyBoard 
-                    value={order?.price}
-                    onSave={overridePrice}
-                    onCancel={()=> setActivePopUp("")}
+                    value={order}
+                    onSave={(ordr) => { hideActivePopUp(); orderActions.update(ordr) }}
+                    onCancel={hideActivePopUp}
                     title={"Override Price"}
                 
                 />
             )
-    
-    }
+    }}, [order, activePopUp]);
 
-    const Indicators = {
-        onDeleting: processingModel.type === ORDER_STATES.DELETING &&(<ProcessingIndicator 
-            isLoading={processingModel.processing}
-            action={processingModel.processingMessage}
-            errorMessage={processingModel.failure && processingModel.failureMessage}
-            onIgnore={() => setProcessingModel({
-                type: null,
-                processing: false,
-                failure: false
-            })}
-            onRetry={onDeleteOrder}
-
-        />)
-    }
     return <div className={style.orderCard}>
         <div>
             <div className={style.orderCardHeader}>
                 <label htmlFor="orderTime">Ordered:</label>
                 <p> {order.orderedAt} </p>
-                {  order.orderedAt !== order.updatedAt && <div
-                    style={
-                        {
-                            "width": "30%",
-                            "display": "flex",
-                            "gap": "0.5rem"
+                {  
+                    order.orderedAt !== order.updatedAt && <div
+                        style={
+                            {
+                                "width": "30%",
+                                "display": "flex",
+                                "gap": "0.5rem"
 
-                        }
-                }
-                    
+                            } 
+                    }    
                 >
                     <label htmlFor="updateTime">Updated:</label>
                     <p>{order.updatedAt}</p>
@@ -279,7 +190,6 @@ function OrderCard({order}) {
             <div
                 type="submit"
                 onClick={()=> setActivePopUp("order-options")}
-            
                 className={style.orderBody}  >
                 <p className={style.orderQuntity}>{order.quantity}</p>
                 <div className={style.orderBodyContainer} >
@@ -315,12 +225,11 @@ function OrderCard({order}) {
             warningModel.show && <WarningMessage
                 title={"Warning !"}
                 onCancel={hideWarning}
-                onContinue={warningModel.onContinue}
+                onContinue={onDeleteOrder}
                 message={warningModel.message}
                 />
         }  
-        {Indicators.onDeleting}
-      
+
     </div>
 
 

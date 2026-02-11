@@ -1,8 +1,6 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from .models import Bill, Table
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from .views import send_table_update
 
 # We'll use this to track the old table before a Bill is updated

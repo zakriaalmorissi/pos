@@ -107,7 +107,7 @@ function useInitializeData () {
         } catch (err) {
             changeLaunchingState({
                 value: LAUNCHING_STATE.ERROR,
-                message: `Ooops... Error occured: ${err.message}`
+                message: `Ooops... Error occured: ${err?.hint ?? ""}`
             })
 
         }
@@ -180,10 +180,10 @@ function useInitializeData () {
         })
 
         } catch (err) {
-            console.log(err)
+            
         changeLaunchingState({
             value: LAUNCHING_STATE.ERROR,
-            message: `Faild to get data due to ${err.message}`
+            message: `Faild to get data due to ${err?.hint ?? ""}`
             
         })
 

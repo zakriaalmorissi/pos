@@ -1,17 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchData } from "./../../network/api";
 import { url } from "./../../network/constants";
+import api, { NetworkError } from "../../network/API";
 
 // Async thunk to fetch system data
 export const fetchTables = createAsyncThunk(
   "floors/fetchTables",
-  async () => {
-    return new Promise((resolve, reject) => {
-      fetchData(`${url}api/floors/`, {
-        getData: (res) => resolve(res),
-        apiError: (err) => reject(err),
-      });
-    });
+  async (__, {rejectWithValue}) => {
+    const URL = `${url}api/floors/`;
+    try {
+      return await api.get({url: URL});
+    } catch (error) {
+       if (error instanceof NetworkError) {
+        return rejectWithValue({message: error.message, hint: error?.hint});
+       }
+       return rejectWithValue(error);
+    }
   }
 );
 
@@ -62,7 +66,7 @@ const tablesSlice = createSlice({
 
         })
         .addCase(fetchTables.fulfilled, (state, action)=> {
-            state.floors = action.payload.data?.map(floor => ({
+            state.floors = action.payload?.map(floor => ({
                 ...floor, tables: 
                 floor.tables.map((table) => cleanTable(table))
               })
@@ -73,7 +77,8 @@ const tablesSlice = createSlice({
     
         })
         .addCase(fetchTables.rejected, (state, action)=> {
-          state.loadingTablesError = `Ooops ... failed to load tables due to "${action.error?.message}"`;
+          state.loadingTablesError = `Ooops ... failed to load tables due to "${action.payload?.message}"`;
+          state.loadingTables = false;
         
         })
     }

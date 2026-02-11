@@ -222,16 +222,15 @@ def single_order_view(request: Request, order_id:int) -> Response:
         return update_order(request=request, id=order_id)
     
     if request.method == "DELETE":
-        # Update the bill total price 
         try:
-            order =  Order.objects.get(id=request.data.get("id", None))
+            order =  Order.objects.get(id=order_id)
+            bill = order.bill
+            order.delete()
+            serialize_bill = SerializeBill(bill)
+            # return the calculated bill
+            return Response({"success": "Order deleted", "bill": serialize_bill.data}, status=status.HTTP_200_OK)
         except Order.DoesNotExist:
             return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
-        delete = delete_object(request=request, model=Order)
-        if delete.status_code == 200:
-            return delete
-        return Response({"error":"Unexpected Error"}, status=status.HTTP_400_BAD_REQUEST)
-
     
 
 
