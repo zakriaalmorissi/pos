@@ -103,6 +103,7 @@ export const deleteOrder = createAsyncThunk (
 );
 
 export const cleanOrder = (order) => {
+  if (!order) return;
   /// Clean the fetched order to make it more readable following the javascript naming convention
     // Create a formatter for relative time
   function getRelativeTime(ms) { const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
@@ -130,10 +131,10 @@ export const cleanOrder = (order) => {
   return {
           id: order.id,
           name: order.food_name,
-          totalPrice: order.total_price,
-          price: order.price,
+          totalPrice: Number(order.total_price ?? 0),
+          price: Number(order.price ?? 0),
           bill: order.bill,
-          quantity: order.quantity,
+          quantity: Number(order.quantity ?? 0),
           status: order.status,
           isOrdered: order.is_ordered,
           hasTable: order.has_table,

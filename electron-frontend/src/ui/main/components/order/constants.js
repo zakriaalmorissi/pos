@@ -5,6 +5,12 @@ const ORDER_STATES = {
     DELETING: "deleting",
 }
 
+const  PROCESSING_STATE = {
+    IDLE: 'idle',
+    LOADING: 'loading',
+    ERROR: 'error'
+}
 
 
-export { ORDER_STATES }
+
+export { ORDER_STATES, PROCESSING_STATE }

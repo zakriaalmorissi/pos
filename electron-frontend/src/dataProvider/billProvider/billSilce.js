@@ -8,7 +8,23 @@ import { NetworkError, AbortRequestError } from "../../network/API";
 
 
 
-
+ export const cleanBill = (bill) => {
+    console.log(bill)
+        if (!bill) return null;
+        return  {
+            id: bill.id,
+            name: bill.name,
+            ordersLength: bill.orders_length ?? 0,
+            discount: Number(bill.read_only_discount ?? 0),
+            precentageDiscount: Number(bill.discount ?? 0),
+            serviceCharge: Number(bill.service_charge ?? 0),
+            tax: Number(bill.tax?? 0),
+            total: Number(bill.total ?? 0),
+            finalPrice: Number(bill.final_price?? 0),
+            createdAt: bill.created_at ?? 0,
+            updatedAt: bill.update_at ?? 0
+        }
+    }
 
 // Create a bort controller to avoid late responses that causes memory leak and unwanted results;
 let billController ;

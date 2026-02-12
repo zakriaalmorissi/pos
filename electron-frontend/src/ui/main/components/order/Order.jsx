@@ -3,7 +3,7 @@ import style from './order.module.css';
 import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "../components.jsx";
 import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../../components/components.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import { ORDER_STATES } from "./constants.js";
+import { ORDER_STATES, PROCESSING_STATE } from "./constants.js";
 import useOrderHook from "./useOrder.jsx";
 
 
@@ -15,23 +15,34 @@ export function Orders() {
     const {orders} = useSelector( s => s.order)
 
   
-
-    const Indicators = {
-        gettingOrders: orderProcessing.type === ORDER_STATES.GETTING && (
+    const Indicators = useMemo(() => {
+        if (orderProcessing.status === PROCESSING_STATE.IDLE) return null;
+       return {
+        getting: (
             <ProcessingIndicator 
-                isLoading={orderProcessing.processing}
-                action={orderProcessing.processingMessage}
-                errorMessage={orderProcessing.failure && orderProcessing.failureMessage}
+                isLoading={orderProcessing.status === PROCESSING_STATE.LOADING}
+                action={orderProcessing.message}
+                errorMessage={orderProcessing.status === PROCESSING_STATE.ERROR && orderProcessing.message}
                 onIgnore={resetOrderProcessing}
                 onRetry={loadOrders}
             />),
-        onDeleting: orderProcessing.type === ORDER_STATES.DELETING &&(<ProcessingIndicator 
-            isLoading={orderProcessing.processing}
-            action={orderProcessing.processingMessage}
-            errorMessage={orderProcessing.failure && orderProcessing.failureMessage}
+        deleting:(<ProcessingIndicator 
+            isLoading={orderProcessing.status === PROCESSING_STATE.LOADING}
+            action={orderProcessing.message}
+            errorMessage={orderProcessing.status === PROCESSING_STATE.ERROR && orderProcessing.message}
             onIgnore={resetOrderProcessing}
-        />)
-    }
+        />),
+        creating: (<ProcessingIndicator 
+            isLoading={orderProcessing.status === PROCESSING_STATE.LOADING}
+            action={orderProcessing.message}
+            errorMessage={orderProcessing.status === PROCESSING_STATE.ERROR && orderProcessing.message }
+            onIgnore={resetOrderProcessing}
+        />),
+        updating: (<TimeoutErrorMessageIndicator  
+            message={orderProcessing.status === PROCESSING_STATE.ERROR &&orderProcessing.message} 
+            resetState={resetOrderProcessing}
+            />)
+    }}, [orderProcessing]);
     // Override the client name 
     return  <div className={style.ordersContainer}>
         <div className={style.ordersTopContent}>
@@ -62,19 +73,19 @@ export function Orders() {
               bill &&  <div className={style.valuesContainer}>
                     <div className={style.subtotalContainer}> 
                         <p>{bill?.ordersLength}</p>
-                        <p className={style.subtotal}>{bill?.total}</p>
+                        <p className={style.subtotal}>{bill?.total.toFixed(2)}</p>
                     </div>
                     <div className={style.valuesContent}> 
-                        <p>{bill?.discount}</p>
-                        <p>{bill.serviceCharge}</p>
-                        <p>{bill.tax}</p>
-                        <p className={style.total}>{bill.finalPrice}</p>
+                        <p>{bill?.discount.toFixed(2)}</p>
+                        <p>{bill.serviceCharge.toFixed(2)}</p>
+                        <p>{bill.tax.toFixed(2)}</p>
+                        <p className={style.total}>{bill.finalPrice.toFixed(2)}</p>
                     </div> 
                 </div>
-
             }
-            {Indicators.gettingOrders}
-            {Indicators.onDeleting}
+            {
+              Indicators && Indicators[orderProcessing.action]
+            }
         </div>
     </div>
 }
@@ -123,10 +134,8 @@ function OrderCard({order, bill, orderActions}) {
     }
 
 
-
-
-
     const popUpViews = useMemo(()=> {
+        if (!activePopUp) return; // Don't do any thing if there is no any call for these components
       return  {
             "order-options": (
                 <OrderOptions 
@@ -134,7 +143,7 @@ function OrderCard({order, bill, orderActions}) {
                     overridePrice={()=> setActivePopUp("numeric-keyboard")}
                     lineMark={()=> setActivePopUp('line-mark')}
                     addCondiments={()=> setActivePopUp('condimentsComponent')}
-                    overrideQuantity={(ordr)=>  {hideActivePopUp(),orderActions.update(ordr)}}
+                    overrideQuantity={(ordr)=>  {hideActivePopUp(); orderActions.update(ordr)}}
                     order={order}
                     navigateBack={hideActivePopUp}
                 
@@ -177,7 +186,6 @@ function OrderCard({order, bill, orderActions}) {
                                 "width": "30%",
                                 "display": "flex",
                                 "gap": "0.5rem"
-
                             } 
                     }    
                 >
@@ -206,7 +214,7 @@ function OrderCard({order, bill, orderActions}) {
                     }
                     <div>
                         {
-                            bill?.discount > 0.00 && <p>discount: {bill?.discount}% off</p>
+                            bill?.precentageDiscount > 0.00 && <p>discount: {bill?.precentageDiscount} % off</p>
                         }
                         {
                             order.condiments.map((con)=> <p key={con}>- {con}</p>)
@@ -219,7 +227,7 @@ function OrderCard({order, bill, orderActions}) {
             </div>
         </div>
         {
-            popUpViews[activePopUp]
+           activePopUp && popUpViews[activePopUp]
         }
         {
             warningModel.show && <WarningMessage
