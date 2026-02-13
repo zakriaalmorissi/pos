@@ -1,4 +1,4 @@
-const ORDER_STATES = {
+const ACTIONS = {
     GETTING: "getting",
     CREATING: "creating",
     UPDATING: "updating",
@@ -13,4 +13,4 @@ const  PROCESSING_STATE = {
 
 
 
-export { ORDER_STATES, PROCESSING_STATE }
+export { ACTIONS, PROCESSING_STATE }

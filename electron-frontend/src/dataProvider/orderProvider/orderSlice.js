@@ -2,7 +2,7 @@ import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import { fetchData, updateData , postData, deleteData} from "./../../network/api";
 import { url } from "./../../network/constants";
 import { overrideBill } from "../billProvider/billSilce";
-import api, { NetworkError } from "../../network/API";
+import api, { AbortRequestError, NetworkError } from "../../network/API";
 
 // ✅ Update order (price, quantity, condiments, etc.)
 
@@ -20,7 +20,7 @@ export const updateOrder = createAsyncThunk(
     } catch (error) {
       if (error instanceof NetworkError) {
         return rejectWithValue({message: error.message, hint: error.hint});
-      }
+      } else if (error instanceof AbortRequestError) return;
       return rejectWithValue(error);
     }
   }
@@ -63,7 +63,7 @@ export const fetchOrders = createAsyncThunk(
     "order/fetchOrders",
     async (billId, {rejectWithValue}) => {
     controller = new AbortController();
-    const URL =   `${url}api/orders-view/${billId}/`;
+    const URL = `${url}api/orders-view/${billId}/`;
     try {
       const response = await api.get({
         url: URL,
@@ -74,7 +74,9 @@ export const fetchOrders = createAsyncThunk(
     } catch (error) {
       if (error instanceof NetworkError) {
         return rejectWithValue({message: error.message, hint: error.hint});
-      }
+      } else if (error instanceof AbortRequestError) {
+        return rejectWithValue({message: error?.message});
+      };
       return rejectWithValue(error);
     }
     }
@@ -84,7 +86,7 @@ export const fetchOrders = createAsyncThunk(
 export const deleteOrder = createAsyncThunk (
   "order/deleteOrder",
   async (orderId, {dispatch, rejectWithValue}) => {
-    const URL =   `${url}api/order-view/${orderId}/`;
+    const URL = `${url}api/order-view/${orderId}/`;
     try {
       const response = await api.delete({
         url: URL,

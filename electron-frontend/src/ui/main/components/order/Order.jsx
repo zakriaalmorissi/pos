@@ -1,12 +1,10 @@
-import { useState , useEffect, useContext, useMemo} from "react";
+import { useState ,useMemo} from "react";
 import style from './order.module.css';
 import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "../components.jsx";
-import { WarningMessage, ProcessingIndicator, TimeoutErrorMessageIndicator } from "../../../components/components.jsx";
-import { useSelector, useDispatch } from "react-redux";
-import { ORDER_STATES, PROCESSING_STATE } from "./constants.js";
+import { WarningMessage } from "../../../components/components.jsx";
+import { useSelector } from "react-redux";
 import useOrderHook from "./useOrder.jsx";
-
-
+import Indicator from "../Indicator.jsx";
 
 // this function needs to have a call back function to perform some necessary  updates to the parent component
 export function Orders() {
@@ -15,34 +13,6 @@ export function Orders() {
     const {orders} = useSelector( s => s.order)
 
   
-    const Indicators = useMemo(() => {
-        if (orderProcessing.status === PROCESSING_STATE.IDLE) return null;
-       return {
-        getting: (
-            <ProcessingIndicator 
-                isLoading={orderProcessing.status === PROCESSING_STATE.LOADING}
-                action={orderProcessing.message}
-                errorMessage={orderProcessing.status === PROCESSING_STATE.ERROR && orderProcessing.message}
-                onIgnore={resetOrderProcessing}
-                onRetry={loadOrders}
-            />),
-        deleting:(<ProcessingIndicator 
-            isLoading={orderProcessing.status === PROCESSING_STATE.LOADING}
-            action={orderProcessing.message}
-            errorMessage={orderProcessing.status === PROCESSING_STATE.ERROR && orderProcessing.message}
-            onIgnore={resetOrderProcessing}
-        />),
-        creating: (<ProcessingIndicator 
-            isLoading={orderProcessing.status === PROCESSING_STATE.LOADING}
-            action={orderProcessing.message}
-            errorMessage={orderProcessing.status === PROCESSING_STATE.ERROR && orderProcessing.message }
-            onIgnore={resetOrderProcessing}
-        />),
-        updating: (<TimeoutErrorMessageIndicator  
-            message={orderProcessing.status === PROCESSING_STATE.ERROR &&orderProcessing.message} 
-            resetState={resetOrderProcessing}
-            />)
-    }}, [orderProcessing]);
     // Override the client name 
     return  <div className={style.ordersContainer}>
         <div className={style.ordersTopContent}>
@@ -83,9 +53,11 @@ export function Orders() {
                     </div> 
                 </div>
             }
-            {
-              Indicators && Indicators[orderProcessing.action]
-            }
+            <Indicator 
+                processingModel={orderProcessing}
+                resetState={resetOrderProcessing}
+                callbacks={{retryFetch: loadOrders}}
+            />
         </div>
     </div>
 }
@@ -93,25 +65,13 @@ export function Orders() {
 
 function OrderCard({order, bill, orderActions}) {
     const [activePopUp, setActivePopUp] = useState(null);
-    const [warningModel, setWarningModel] = useState({ 
-        show: false,
-        message: "",
-        orderId: null
-    });
+    const [warningModel, setWarningModel] = useState({ show: false,message: ""});
   
     const hideWarning = () => {
-        setWarningModel({
-            show: false,
-            data: null,
-            message: "",
-            onContinue: null
-        })
+        setWarningModel({ show:false, message: ""});
     }
 
-    const hideActivePopUp = () => {
-        if (!activePopUp)  return; 
-        setActivePopUp(null);
-    }
+    const hideActivePopUp = () => setActivePopUp(null);
     // Order modification and managements
     const onDeleteOrder = async () => {
         hideWarning();
@@ -124,8 +84,7 @@ function OrderCard({order, bill, orderActions}) {
         if (order.isOrdered) {
             setWarningModel({
                 show: true,
-                message: `The ${order.name} is already delivered . Are you sure you want to delete this item ?`,
-                orderId: order?.id
+                message: `The ${order.name} is already delivered. Are you sure you want to delete this item ?`,
             })
            
         } else {
@@ -135,7 +94,7 @@ function OrderCard({order, bill, orderActions}) {
 
 
     const popUpViews = useMemo(()=> {
-        if (!activePopUp) return; // Don't do any thing if there is no any call for these components
+        if (!activePopUp) return null; // Don't do any thing if there is no any call for these components
       return  {
             "order-options": (
                 <OrderOptions 
@@ -172,7 +131,7 @@ function OrderCard({order, bill, orderActions}) {
                 
                 />
             )
-    }}, [order, activePopUp]);
+    }}, [order, activePopUp, orderActions]);
 
     return <div className={style.orderCard}>
         <div>

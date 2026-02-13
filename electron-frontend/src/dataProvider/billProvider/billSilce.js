@@ -9,7 +9,6 @@ import { NetworkError, AbortRequestError } from "../../network/API";
 
 
  export const cleanBill = (bill) => {
-    console.log(bill)
         if (!bill) return null;
         return  {
             id: bill.id,
@@ -57,6 +56,7 @@ export const fetchBill =  createAsyncThunk(
             if (error instanceof AbortRequestError) {
                 return  rejectWithValue({message: error?.message ?? "Request was aborted"});
             }
+            else if (error instanceof AbortRequestError) return;
            return rejectWithValue(error);
 
            
@@ -79,6 +79,8 @@ export const createBill = createAsyncThunk(
             if (error instanceof NetworkError) {
                 const rejectValue = {message: error.message, hint: error.hint};
                 return rejectWithValue(rejectValue);
+            } else if(error instanceof AbortRequestError) {
+                return rejectWithValue({message: error?.message})
             }
             // return my customized error messages
            return rejectWithValue(error)
