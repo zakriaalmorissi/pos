@@ -71,6 +71,7 @@ const tablesSlice = createSlice({
                 floor.tables.map((table) => cleanTable(table))
               })
             )
+           // console.log(state.floors);
         
             state.loadingTables = false;
             state.loadingTablesError = null;

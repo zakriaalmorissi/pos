@@ -173,10 +173,13 @@ def take_out_bills_view(request:Request):
 def create_bill(request: Request) -> Response:
     data: dict = request.data
     serialize = SerializeBill(data=data)
-    
     if serialize.is_valid():
         serialize.save()
-        return Response(serialize.data, status=200)
+        table = Table.objects.filter(id = serialize.data.get("table")).first()
+        print(table)
+        print(serialize.data)
+        serializeTable = SerializeTables(table)
+        return Response({"bill": serialize.data, "table": serializeTable.data}, status=200)
     return Response(serialize.errors, status=400)
     
 
@@ -191,20 +194,20 @@ def bill_view (request: Request, bill_id: int) -> Response:
 
     if request.method == "PUT":
         return update_bill(request=request, bill=bill)
-    
     serialize = SerializeBill(bill)
     return Response(serialize.data)
 
 
 def update_bill(request: Request, bill)-> Response: 
     data: dict = request.data
-
+    table = Table.objects.get(id=bill.id)
+    serializeTable = SerializeTables(table)
     serialize = SerializeBill(bill, data=data, partial=True)
     if serialize.is_valid():
         serialize.save()  
         return Response(serialize.data, status=status.HTTP_200_OK)
     
-    return Response({"success": "updated"})
+    return Response({"bill": serialize.data, "table": serializeTable.data}, status=status.HTTP_200_OK)
 
 
 

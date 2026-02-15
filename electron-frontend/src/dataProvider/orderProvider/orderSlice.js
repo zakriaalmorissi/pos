@@ -1,7 +1,7 @@
 import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import { fetchData, updateData , postData, deleteData} from "./../../network/api";
 import { url } from "./../../network/constants";
-import { overrideBill } from "../billProvider/billSilce";
+import { cleanBill, overrideBill } from "../billProvider/billSilce";
 import api, { AbortRequestError, NetworkError } from "../../network/API";
 
 // ✅ Update order (price, quantity, condiments, etc.)
@@ -91,11 +91,11 @@ export const deleteOrder = createAsyncThunk (
       const response = await api.delete({
         url: URL,
       })
+      const bill = cleanBill(response.bill);
        dispatch(removeOrder(orderId));
-       dispatch(overrideBill(response.bill));
+       dispatch(overrideBill(bill));
       return response;
     } catch (error) {
-      console.log(error)
       if (error instanceof NetworkError) {
         return rejectWithValue({message: error.message, hint: error.hint});
       }

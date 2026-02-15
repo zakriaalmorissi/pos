@@ -43,7 +43,7 @@ export function Orders() {
               bill &&  <div className={style.valuesContainer}>
                     <div className={style.subtotalContainer}> 
                         <p>{bill?.ordersLength}</p>
-                        <p className={style.subtotal}>{bill?.total.toFixed(2)}</p>
+                        <p className={style.subtotal}>{bill?.total?.toFixed(2)}</p>
                     </div>
                     <div className={style.valuesContent}> 
                         <p>{bill?.discount.toFixed(2)}</p>

@@ -28,7 +28,6 @@ export default function useOrderHook () {
                 status: PROCESSING_STATE.IDLE,
                 action: null,
                 message: null,
-                         
             })
     }
 
@@ -153,7 +152,7 @@ export default function useOrderHook () {
 
 
     return {
-        bill: cleanBill(bill),
+        bill: bill,
         loadOrders: loadOrders,
         orderProcessing: processingOrderModel,
         resetOrderProcessing: resetProcessingOrderModel,

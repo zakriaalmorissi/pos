@@ -7,10 +7,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { updateBill } from "../../../dataProvider/billProvider/billSilce.js";
 
 
-export function Header ({tableName, bill}) {
+export function Header ({tableName}) {
     const {orderStatus, changeOrderStatus} = useContext(TableContext);
     const [dispalyNumericKeyboard, setDisplayNumericKeyboard] = useState(false);
     const dispatch = useDispatch();
+    const {bill } = useSelector(s => s.bill);
 
     // need to get the bill updated 
     const overrideBillCustomer = (value) => {
@@ -46,7 +47,7 @@ export function Header ({tableName, bill}) {
                             onClick={()=> setDisplayNumericKeyboard(true)}
                             size={40}
                         />
-                        <p>{bill?.customer_number}</p>
+                        <p>{bill?.customerNumber}</p>
                     </div>
                     <RefreshCcw
                         size={40}

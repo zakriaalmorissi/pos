@@ -3,6 +3,7 @@ import { fetchData } from "./../../network/api";
 import api from "../../network/API";
 import { url } from "./../../network/constants";
 import { NetworkError, AbortRequestError } from "../../network/API";
+import { cleanTable, updateTables } from "../tablesProvider/tablesProvider";
 
 
 
@@ -14,6 +15,7 @@ import { NetworkError, AbortRequestError } from "../../network/API";
             id: bill.id,
             name: bill.name,
             ordersLength: bill.orders_length ?? 0,
+            customerNumber: bill.customer_number,
             discount: Number(bill.read_only_discount ?? 0),
             precentageDiscount: Number(bill.discount ?? 0),
             serviceCharge: Number(bill.service_charge ?? 0),
@@ -37,15 +39,13 @@ const abortFetchingBill = () => {
 
 export const fetchBill =  createAsyncThunk(
     "bill/fetchbill",
-    async (billId, {rejectWithValue}) => {
-        billController = new AbortController();
+    async (billId, {rejectWithValue, signal}) => {
         const URL =  `${url}api/bill/${billId}/`;
         try {
            const response = await api.get({
             url: URL,
-            controller: billController
+            controller: signal
            })
-        
         return response;
 
         } catch (error) {
@@ -67,13 +67,20 @@ export const fetchBill =  createAsyncThunk(
 
 export const createBill = createAsyncThunk(
     'bill/createBill',
-    async( data ,{rejectWithValue}) => {
-         const URL =  `${url}api/create-bill/`;
+    async( data ,{rejectWithValue, dispatch}) => {
+         const URL = `${url}api/create-bill/`;
          try {
             const response = await api.post({
                 url: URL,
                 data: data
             })
+            if (response.table) {
+                const table = cleanTable(response.table);
+                console.log(table);
+                console.log(response.table)
+                dispatch(updateTables(table));
+                return response.bill;
+           }
             return response; // already parsed from json format 
          } catch (error) {
             if (error instanceof NetworkError) {
@@ -91,14 +98,19 @@ export const createBill = createAsyncThunk(
 
 export const updateBill = createAsyncThunk(
     'bill/updateBill',
-   async ({billId, data}, {rejectWithValue}) => {
+   async ({billId, data}, {rejectWithValue, dispatch}) => {
         const URL =  `${url}api/bill/${billId}/`;
         console.log(data);
         try {
           const response = await api.put({
             url: URL,
             data: data,
-          })
+          });
+            if (response.table) {
+                const table = cleanTable(response.table);
+                dispatch(updateTables(table));
+                return response.bill;
+           }
         return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -142,7 +154,7 @@ const billSlice = createSlice({
     
         })
         .addCase(fetchBill.fulfilled, (state, action)=> {
-            state.bill = action.payload;
+            state.bill = cleanBill(action.payload);
             state.loading = false;
         })
         .addCase(fetchBill.rejected, (state, action) => {
@@ -157,8 +169,7 @@ const billSlice = createSlice({
 
         })
         .addCase(createBill.fulfilled, (state, action)=> {
-            state.bill = action.payload;
-            console.log(action)
+            state.bill = cleanBill(action.payload);
             state.creatingBill = false;
         })
         .addCase(createBill.rejected, (state, action)=> {
@@ -176,7 +187,8 @@ const billSlice = createSlice({
         })
         .addCase(updateBill.fulfilled, (state, action)=> {
             state.loadingUpdate = false;
-            state.bill = {...state.bill, customer_number: action.payload?.customer_number}
+            const bill = cleanBill(action.payload)
+            state.bill = {...state.bill, ...bill};
         })
         .addCase (updateBill.rejected, (state, action)=> {
             const error = `Oops... Failed to update the bill. ${action.payload?.hint ?? ""}`;
