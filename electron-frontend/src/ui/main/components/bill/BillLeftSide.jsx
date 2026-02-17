@@ -4,12 +4,12 @@ import { DiscountComponent, BillOptions } from "../components.jsx";
 import style from './style/bill.module.css';
 import { WarningMessage } from "../../../components/components.jsx";
 
- export function BillLeftSide ({handleBillDiscount, creatNewBill, deleteAllOrders, bill}) {
+ export function BillLeftSide ({handleBillDiscount, createNewBill, deleteAllOrders, bill}) {
     const [popUpView, setActivePopUpView] = useState("");
    
     const onCreateNewBill = () => {
         setActivePopUpView("");
-        creatNewBill();
+        createNewBill();
     }
 
     const onBillDiscount = (data) => {

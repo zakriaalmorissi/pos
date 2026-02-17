@@ -64,7 +64,7 @@ const request = async ({
   method = "GET",
   data,
   options = {},
-  controller,
+  signal,
 }) => {
   const headers = {
     Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -74,7 +74,7 @@ const request = async ({
   const config = {
     method,
     headers,
-    signal: controller?.signal,
+    signal: signal,
   };
 
   if (data && method !== "GET") {
@@ -102,17 +102,17 @@ const request = async ({
 
 
 const api = {
-  get: ({ url, options, controller }) =>
-    request({ url, method: "GET", options, controller }),
+  get: ({ url, options, signal }) =>
+    request({ url, method: "GET", options, signal }),
 
-  post: ({ url, data, options, controller }) =>
-    request({ url, method: "POST", data, options, controller }),
+  post: ({ url, data, options, signal}) =>
+    request({ url, method: "POST", data, options, signal }),
 
-  put: ({ url, data, options, controller }) =>
-    request({ url, method: "PUT", data, options, controller }),
+  put: ({ url, data, options, signal }) =>
+    request({ url, method: "PUT", data, options, signal }),
 
-  delete: ({ url, options, controller }) =>
-    request({ url, method: "DELETE", options, controller }),
+  delete: ({ url, options, signal }) =>
+    request({ url, method: "DELETE", options, signal }),
 };
 
 export default api;

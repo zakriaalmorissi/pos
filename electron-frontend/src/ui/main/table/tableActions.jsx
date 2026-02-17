@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { clearOrders } from "../../../dataProvider/orderProvider/orderSlice";
-import { clearBill } from "../../../dataProvider/billProvider/billSilce";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SOCKET_URL } from "../../../network/constants";
 import { TABLE_ACTIONS } from "./tableConsistents";
 
-export function useTableWebSocket(table) {
+export function useTableWebSocket() {
+  const [searchParams] = useSearchParams();
+  const tableId = Number(searchParams.get("tableId"));
   const token = localStorage.getItem("accessToken");
-
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
 
@@ -45,7 +42,7 @@ export function useTableWebSocket(table) {
       socket.send(
         JSON.stringify({
           action: TABLE_ACTIONS.OCCUPY,
-          payload: {...table, status: TABLE_ACTIONS.OCCUPIED },
+          payload: {id:tableId, status: TABLE_ACTIONS.OCCUPIED},
         })
       );
     };
@@ -104,13 +101,12 @@ export function useTableWebSocket(table) {
      ========================= */
   
   function releaseTable() {
-  
     const socket = new WebSocket(`${SOCKET_URL}table/?token=${token}`);
     socket.onopen = () => {
       socket.send(
         JSON.stringify({
           action: TABLE_ACTIONS.RELEASE,
-          payload: { id: table?.id },
+          payload: { id: tableId},
         })
       );
 

@@ -292,10 +292,11 @@ def create_order(request: Request) -> Response:
         "price": price, "bill": bill.pk,
         "status": order_status 
     })
+    serialize_bill = SerializeBill(bill)
     
     if serialize.is_valid():
         serialize.save()
-        return Response(serialize.data, status=200)
+        return Response({"order": serialize.data, "bill": serialize_bill.data}, status=200)
     return Response(serialize.errors, status=400)
 
 

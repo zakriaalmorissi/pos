@@ -175,8 +175,8 @@ export function BillOptions ({
 }
 
 
-export function NumericKeyBoard({onSave, onCancel, title, order}) {
-    const [number, setNumber] = useState(String(order?.price ? value: 0));
+export function NumericKeyBoard({onSave, onCancel, title, value}) {
+    const [number, setNumber] = useState(String(value?? 0));
     const numbers = ['1','2','3','4','5','6','7','8','9','0', '00'];
 
     const onClick = (number) => {

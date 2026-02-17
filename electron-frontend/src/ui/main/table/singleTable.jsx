@@ -1,17 +1,11 @@
-import { useNavigate, useSearchParams} from "react-router-dom";
-import { useState, useEffect, useContext, useMemo} from "react";
 import style from './../style/table.module.css';
-import { TableProvider, TableContext} from "../provider/provider.jsx"
 import { Header } from "./Header.jsx";
 import { Bill } from "../components/bill/Bill.jsx";
 import { StepBackIcon} from "lucide-react";
-import { ProcessingIndicator, TimeoutErrorMessageIndicator} from "../../components/components.jsx";
-import { useDispatch, useSelector } from "react-redux";
+import { ProcessingIndicator} from "../../components/components.jsx";
 import BillForm from "../components/bill/billForm.jsx";
-import { createBill, fetchBill} from "../../../dataProvider/billProvider/billSilce.js";
 import BillCard from "../components/bill/BillCard.jsx";
 import {  useTableWebSocket } from "./tableActions.jsx";
-import { LoadingSpinner } from "../components/components.jsx";
 import { TABLE_ACTIONS } from "./tableConsistents.js";
 import useTableHook from "./useTableHook.jsx";
 import Indicator from "../components/Indicator.jsx";
@@ -20,29 +14,12 @@ import Indicator from "../components/Indicator.jsx";
 
 
 export default function SingleTable() {
-   const {table, tableCrud, view, tableProcessing, resetModelProcessingState} = useTableHook();
-
-    if (!table) {
-        return <LoadingSpinner/>
-    }
-  
-
-  return (
-    <TableProvider>
-      <DisplayTable table={table} 
-      tableCrud={tableCrud} view={view} 
-      tableProcessing={tableProcessing}
-      resetModelProcessingState = {resetModelProcessingState}
-      />
-    </TableProvider>
-  );
-}
-
-
-function DisplayTable ({table, tableCrud, view, tableProcessing, resetModelProcessingState}) {
-    const {orderStatus} = useContext(TableContext);
-    const {tableAction, socketModel, resetSocketModel} =  useTableWebSocket(table);
- 
+   const {table, tableCrud, view, 
+    tableProcessing, 
+    resetModelProcessingState,
+    changeTableOrdersStatus,
+} = useTableHook();
+    const {tableAction, socketModel, resetSocketModel} =  useTableWebSocket();
 
     const Processindicators = {
         occupying: (<ProcessingIndicator 
@@ -54,8 +31,6 @@ function DisplayTable ({table, tableCrud, view, tableProcessing, resetModelProce
         />)
     
     }
-
-
     const views = {
         billForm: <BillForm 
             onSubmit={tableCrud.createTableBill}
@@ -72,12 +47,14 @@ function DisplayTable ({table, tableCrud, view, tableProcessing, resetModelProce
 
 
     return view === "selectBill" ? views.selectedBill: 
-        
         <div className={style.tableContainer}>
-            <Header tableName={table.name} />
+            <Header 
+                tableName={table.name}
+                changeOrderStatus={changeTableOrdersStatus}
+                overrideBillCustomer={tableCrud.updateTableBill}
+                />
             <Bill 
                 table={table} // 
-                orderStatus={orderStatus} 
                 handleCompleteAction={tableAction.releaseTable}
                 creatNewBill={null}            
             />
@@ -101,8 +78,6 @@ function BillSelectionView ({bills,
                     <StepBackIcon size={40}/>
                     <p>Back</p>
                 </button>
-                  
-            
                 <h3>Table no: {table?.name}</h3>
             </div>
             <div className={style.chooseBillContent}>

@@ -3,7 +3,8 @@ import { fetchData } from "./../../network/api";
 import api from "../../network/API";
 import { url } from "./../../network/constants";
 import { NetworkError, AbortRequestError } from "../../network/API";
-import { cleanTable, updateTables } from "../tablesProvider/tablesProvider";
+import {  updateTables } from "../tablesProvider/tablesProvider";
+import { cleanTable } from "../tablesProvider/tableModels";
 
 
 
@@ -14,6 +15,7 @@ import { cleanTable, updateTables } from "../tablesProvider/tablesProvider";
         return  {
             id: bill.id,
             name: bill.name,
+            table: bill.table,
             ordersLength: bill.orders_length ?? 0,
             customerNumber: bill.customer_number,
             discount: Number(bill.read_only_discount ?? 0),
@@ -27,15 +29,6 @@ import { cleanTable, updateTables } from "../tablesProvider/tablesProvider";
         }
     }
 
-// Create a bort controller to avoid late responses that causes memory leak and unwanted results;
-let billController ;
-const abortFetchingBill = () => {
-    if (billController) {
-        billController.abort();
-        billController = null; 
-    }
-}
-
 
 export const fetchBill =  createAsyncThunk(
     "bill/fetchbill",
@@ -44,7 +37,7 @@ export const fetchBill =  createAsyncThunk(
         try {
            const response = await api.get({
             url: URL,
-            controller: signal
+            signal: signal
            })
         return response;
 
@@ -76,8 +69,6 @@ export const createBill = createAsyncThunk(
             })
             if (response.table) {
                 const table = cleanTable(response.table);
-                console.log(table);
-                console.log(response.table)
                 dispatch(updateTables(table));
                 return response.bill;
            }
@@ -100,7 +91,6 @@ export const updateBill = createAsyncThunk(
     'bill/updateBill',
    async ({billId, data}, {rejectWithValue, dispatch}) => {
         const URL =  `${url}api/bill/${billId}/`;
-        console.log(data);
         try {
           const response = await api.put({
             url: URL,
@@ -133,7 +123,6 @@ const billSlice = createSlice({
         loadingUpdate: false,},
     reducers: {
         clearBill: (state) => {
-            abortFetchingBill();
             state.bill = null;
             state.loadingBillError = null;
             state.creatingBillError = null;

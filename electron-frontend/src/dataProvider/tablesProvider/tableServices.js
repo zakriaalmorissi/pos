@@ -1,10 +1,8 @@
-
 import { url } from "../../network/constants";
 import api from "../../network/API";
 
 const createTable = async () => {
     let response;
-
 
     return // data 
 }

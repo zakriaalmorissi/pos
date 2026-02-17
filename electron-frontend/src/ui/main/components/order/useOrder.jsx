@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders, deleteOrder, updateOrder, createOrder } from "../../../../dataProvider/orderProvider/orderSlice";
 import { ACTIONS, PROCESSING_STATE } from "../constants";
@@ -17,10 +17,14 @@ export default function useOrderHook () {
             message: null,
 
     });
+    const currentRequest = useRef(null);
     
     // Get the orders
     useEffect(()=> {
             loadOrders();
+       return () => {
+        currentRequest.current?.abort();
+       };
     }, [bill?.id]);
 
     const resetProcessingOrderModel = () => {
@@ -34,6 +38,12 @@ export default function useOrderHook () {
 
     const loadOrders = async () => {
         if (!bill) return;
+        if (currentRequest.current) {
+            currentRequest.current.abort();
+        }
+        const thunk = dispatch(fetchOrders(bill.id));
+        currentRequest.current = thunk;
+        console.log("Load orders is called");
         const timer = launchIndicatorModel({
             status: PROCESSING_STATE.LOADING,
             action: ACTIONS.GETTING,
@@ -48,9 +58,10 @@ export default function useOrderHook () {
             setModel: (values) => setProcessingOrderModel(values)
         })
         try {
-            await dispatch(fetchOrders(bill?.id)).unwrap();
+            await thunk.unwrap();
             resetProcessingOrderModel();
         } catch (error) {
+            if (error?.name === "AbortError") return;
             setProcessingOrderModel({
                 status: PROCESSING_STATE.ERROR,
                 action: ACTIONS.GETTING,

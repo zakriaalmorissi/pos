@@ -1,33 +1,24 @@
 import { Table, Printer, User, RefreshCcw } from "lucide-react"
 import style from './../style/table.module.css';
-import { useContext, useState } from "react";
-import { TableContext } from "../provider/provider.jsx";
 import { NumericKeyBoard } from "../components/components.jsx";
-import { useSelector, useDispatch } from "react-redux";
-import { updateBill } from "../../../dataProvider/billProvider/billSilce.js";
+import { useDispatch, useSelector} from "react-redux";
+import { useState } from "react";
 
-
-export function Header ({tableName}) {
-    const {orderStatus, changeOrderStatus} = useContext(TableContext);
+export function Header ({tableName, overrideBillCustomer, changeOrderStatus}) {
     const [dispalyNumericKeyboard, setDisplayNumericKeyboard] = useState(false);
-    const dispatch = useDispatch();
     const {bill } = useSelector(s => s.bill);
-
+    const {ordersStatus} = useSelector( s => s.order);
     // need to get the bill updated 
-    const overrideBillCustomer = (value) => {
-        dispatch(updateBill({billId: bill?.id, data: {customer_number: value}}))
+    const onOverrideBillCustomer = (value) => {
         setDisplayNumericKeyboard(false);
+        overrideBillCustomer({...bill, customerNumber: value});
     }
 
     return (
         <div className={style.tableHeader}> 
             <h1>Table Header</h1>
-            {
-                bill !== null && <div className={style.billHeaderInfo}>
-                    <button type="submit" onClick={changeOrderStatus} style={{
-                        backgroundColor: orderStatus === "Take out" && "red",
-                        color: orderStatus === "Take out" &&  "white"
-                    }}> {orderStatus} </button>
+                <div className={style.billHeaderInfo}>
+                    <button type="submit" onClick={changeOrderStatus}> {ordersStatus} </button>
                     <Printer 
                         onClick={() => console.log("Printed")}
                         size={40}
@@ -55,14 +46,12 @@ export function Header ({tableName}) {
                     
                     /> 
                 </div>
-            }
         {dispalyNumericKeyboard && 
             <NumericKeyBoard
-                value={bill?.customer_number}
+                value={bill?.customerNumber}
                 onCancel={()=> setDisplayNumericKeyboard(false)}
-                onSave={overrideBillCustomer}
+                onSave={onOverrideBillCustomer}
                 title={"Table Customers"}
-        
         />}
         </div>
     )

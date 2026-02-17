@@ -1,5 +1,4 @@
 
-
 export const cleanTable = (table) => {
   return {
     id: table.id,
@@ -8,6 +7,7 @@ export const cleanTable = (table) => {
     status: table.status,
     countedBills: table.counted_bills ,
     bills: table.bills || [],
-    hasOrders: table.has_orders
+    hasOrders: table.has_orders,
+    selected: false,
   }
 }

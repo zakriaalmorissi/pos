@@ -1,7 +1,6 @@
 import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
-import { fetchData, updateData , postData, deleteData} from "./../../network/api";
 import { url } from "./../../network/constants";
-import { cleanBill, overrideBill } from "../billProvider/billSilce";
+import { cleanBill, overrideBill, updateBill } from "../billProvider/billSilce";
 import api, { AbortRequestError, NetworkError } from "../../network/API";
 
 // ✅ Update order (price, quantity, condiments, etc.)
@@ -20,7 +19,9 @@ export const updateOrder = createAsyncThunk(
     } catch (error) {
       if (error instanceof NetworkError) {
         return rejectWithValue({message: error.message, hint: error.hint});
-      } else if (error instanceof AbortRequestError) return;
+      } else if (error instanceof AbortRequestError) {
+        return rejectWithValue({aborted: true});
+      };
       return rejectWithValue(error);
     }
   }
@@ -31,15 +32,15 @@ export const updateOrder = createAsyncThunk(
 
 export const createOrder = createAsyncThunk(
     "order/createOrder",
-   async ({data}, {rejectWithValue}) => {
+   async ({data}, {rejectWithValue, dispatch}) => {
       const URL = `${url}api/create-order/`;
       try {
         const response = await api.post({
           url: URL,
           data: data
         })
-
-      return response;
+      dispatch(overrideBill(cleanBill(response.bill)));
+      return response.order;
        } catch (error) {
       if (error instanceof NetworkError) {
             return rejectWithValue({message: error.message, hint: error.hint});
@@ -50,24 +51,17 @@ export const createOrder = createAsyncThunk(
 )
 
 
-// 
-let controller; 
-export const abortFetchingOrder = () => {
-    if (controller) {
-      controller.abort();
-      controller = null;
-  }
-}
 
 export const fetchOrders = createAsyncThunk(
     "order/fetchOrders",
-    async (billId, {rejectWithValue}) => {
-    controller = new AbortController();
+    async (billId, {rejectWithValue, signal}) => {
+    console.log("fecthing orders is called");
+    console.log(`Current bill is ${billId}`);
     const URL = `${url}api/orders-view/${billId}/`;
     try {
       const response = await api.get({
         url: URL,
-        controller: controller
+        signal: signal
       })
 
       return response;
@@ -75,7 +69,7 @@ export const fetchOrders = createAsyncThunk(
       if (error instanceof NetworkError) {
         return rejectWithValue({message: error.message, hint: error.hint});
       } else if (error instanceof AbortRequestError) {
-        return rejectWithValue({message: error?.message});
+        return rejectWithValue({aborted: true});
       };
       return rejectWithValue(error);
     }
@@ -152,6 +146,7 @@ const orderSlice = createSlice({
     name: "order",
     initialState: {
       orders: [],
+       ordersStatus: "dine in" ,
        orderLoading: false,
        orderError: null,
        onDeleting: false,
@@ -159,8 +154,7 @@ const orderSlice = createSlice({
       },
     reducers: {
         clearOrders: (state) => {
-            abortFetchingOrder();
-            state.orders = [];
+            state.orders =  [];
             state.orderLoading = false;
             state.orderError = null;
         },
@@ -177,10 +171,10 @@ const orderSlice = createSlice({
           const indexOrder = state.orders.findIndex( order => order.id === orderId);
            if (indexOrder !== -1) {
               state.orders[indexOrder] = data.payload;
-           }
-
-          
-          
+           }  
+        },
+        changeOrdersStatus: (state) => {
+          state.ordersStatus = state.ordersStatus === "dine in"? "take out": "dine in";
         }
     },
     extraReducers: (builder) => {
@@ -191,14 +185,17 @@ const orderSlice = createSlice({
          
         })
         .addCase(fetchOrders.fulfilled, (state, action)=> {
-          state.orders = [];
-            state.orders = action.payload.map((order)=> {
-              return cleanOrder(order);
-            });
-            state.orderLoading = false;
+          state.orders = action.payload.reduce((acc, order)=> {
+            const cleaned = cleanOrder(order);
+            if (cleaned.bill === action.meta.arg) {
+              acc.push(cleaned);
+            }
+            return acc;
+          }, [])
+          state.orderLoading = false;
         })
         .addCase(fetchOrders.rejected, (state, action)=> {
-            state.orders = [];
+          if (action.meta.aborted) return;
             state.orderError = `Failed get orders. ${action.payload?.hint ?? ""}`;
             state.orderLoading = false;
           
@@ -237,6 +234,5 @@ const orderSlice = createSlice({
 })
 
 
-export const {clearOrders, removeOrder, writeOrderNotes } = orderSlice.actions;
-
+export const {clearOrders, removeOrder, writeOrderNotes, changeOrdersStatus } = orderSlice.actions;
 export default orderSlice.reducer; 

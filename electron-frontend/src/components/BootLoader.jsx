@@ -9,7 +9,7 @@ import { fetchTakeOutBills } from "../dataProvider/takeOutBillsProvider/takeOutB
 import { fetchMenu } from '../dataProvider/menuProvider/menuProvider';
 import { LoginForm } from "../ui/admin/userForm/login";
 import { updateTables } from '../dataProvider/tablesProvider/tablesProvider';
-import { cleanTable } from '../dataProvider/tablesProvider/tablesProvider'
+import { cleanTable } from "../dataProvider/tablesProvider/tableModels"
 import { useContext } from "react"
 import { LaunchStateContext } from "../App"
 import './style.css'

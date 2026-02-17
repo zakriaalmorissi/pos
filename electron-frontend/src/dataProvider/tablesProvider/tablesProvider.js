@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchData } from "./../../network/api";
 import { url } from "./../../network/constants";
-import api, { NetworkError } from "../../network/API";
+import api, { AbortRequestError, NetworkError } from "../../network/API";
+import { cleanTable } from "./tableModels";
 
 // Async thunk to fetch system data
 export const fetchTables = createAsyncThunk(
@@ -14,24 +14,13 @@ export const fetchTables = createAsyncThunk(
        if (error instanceof NetworkError) {
         return rejectWithValue({message: error.message, hint: error?.hint});
        }
+       if (error instanceof AbortRequestError) return;
        return rejectWithValue(error);
     }
   }
 );
 
 
-export const cleanTable = (table) => {
-  return {
-    id: table.id,
-    name: table.name,
-    floorId: table.floor,
-    status: table.status,
-    countedBills: table.counted_bills ,
-    bills: table.bills || [],
-    hasOrders: table.has_orders,
-    selected: false,
-  }
-}
 
 
 
@@ -71,8 +60,6 @@ const tablesSlice = createSlice({
                 floor.tables.map((table) => cleanTable(table))
               })
             )
-           // console.log(state.floors);
-        
             state.loadingTables = false;
             state.loadingTablesError = null;
     
