@@ -39,7 +39,7 @@ export const fetchBill =  createAsyncThunk(
             url: URL,
             signal: signal
            })
-        return response;
+        return cleanBill(response);
 
         } catch (error) {
             if (error instanceof NetworkError) {
@@ -70,9 +70,9 @@ export const createBill = createAsyncThunk(
             if (response.table) {
                 const table = cleanTable(response.table);
                 dispatch(updateTables(table));
-                return response.bill;
+                return cleanBill(response.bill);
            }
-            return response; // already parsed from json format 
+            return cleanBill(response); // already parsed from json format 
          } catch (error) {
             if (error instanceof NetworkError) {
                 const rejectValue = {message: error.message, hint: error.hint};
@@ -99,9 +99,9 @@ export const updateBill = createAsyncThunk(
             if (response.table) {
                 const table = cleanTable(response.table);
                 dispatch(updateTables(table));
-                return response.bill;
+                return cleanBill(response.bill);
            }
-        return response;
+        return cleanBill(response);
         } catch (error) {
             return rejectWithValue(error);
         }
@@ -143,7 +143,7 @@ const billSlice = createSlice({
     
         })
         .addCase(fetchBill.fulfilled, (state, action)=> {
-            state.bill = cleanBill(action.payload);
+            state.bill = action.payload;
             state.loading = false;
         })
         .addCase(fetchBill.rejected, (state, action) => {
@@ -158,7 +158,7 @@ const billSlice = createSlice({
 
         })
         .addCase(createBill.fulfilled, (state, action)=> {
-            state.bill = cleanBill(action.payload);
+            state.bill = action.payload;
             state.creatingBill = false;
         })
         .addCase(createBill.rejected, (state, action)=> {
@@ -176,7 +176,7 @@ const billSlice = createSlice({
         })
         .addCase(updateBill.fulfilled, (state, action)=> {
             state.loadingUpdate = false;
-            const bill = cleanBill(action.payload)
+            const bill = action.payload
             state.bill = {...state.bill, ...bill};
         })
         .addCase (updateBill.rejected, (state, action)=> {

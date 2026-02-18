@@ -43,3 +43,6 @@ def make_json_safe(data):
     elif isinstance(data, Decimal):
         return float(data)
     return data
+
+def normalize_bill():
+    pass

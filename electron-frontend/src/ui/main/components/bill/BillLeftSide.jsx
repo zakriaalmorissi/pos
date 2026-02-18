@@ -8,8 +8,10 @@ import { WarningMessage } from "../../../components/components.jsx";
     const [popUpView, setActivePopUpView] = useState("");
    
     const onCreateNewBill = () => {
-        setActivePopUpView("");
-        createNewBill();
+        if (createNewBill && typeof createNewBill === "function" ) {
+            setActivePopUpView("");
+            createNewBill();
+        }
     }
 
     const onBillDiscount = (data) => {
@@ -25,30 +27,34 @@ import { WarningMessage } from "../../../components/components.jsx";
 
 
     // Views 
-    const views = {
-        discount: (
-            <DiscountComponent 
-                onBack={()=> setActivePopUpView("")}
-                onSubmit ={onBillDiscount}
-                bill={bill}
-            />
-        ),
-        "menu-options": (
-            <BillOptions 
-                createBill={onCreateNewBill}
-                onBack={()=> setActivePopUpView("")}
-                billDiscount={()=> setActivePopUpView("discount")}
-                viodAll={()=> setActivePopUpView("warningMessage")}
-            
-            />
-        ),
-        "warningMessage": <WarningMessage 
+    const menuOptions = () => {
+        switch(popUpView){
+            case "discount":
+                return (<DiscountComponent 
+                    onBack={()=> setActivePopUpView("menuOptions")}
+                    onSubmit={onBillDiscount}
+                    bill={bill}
+                    />);
+            case "menu-options": 
+                return (
+                    <BillOptions
+                        createBill={onCreateNewBill}
+                        onBack={()=> setActivePopUpView("")}
+                        billDiscount={()=> setActivePopUpView("discount")}
+                        viodAll={()=> setActivePopUpView("warningMessage")}
+                    />);
+
+            case "warningMessage": 
+               return (<WarningMessage 
              message={"This is gonna delete all of the orders !!"} 
              onCancel={()=> setActivePopUpView("menu-options")}
              onContinue={onDeleteAllOrders}
-        />
-    }
-    
+            />);
+            default: return null;
+            
+
+        }
+    }   
     
 
     return  <div className={style.billSideContainer}>
@@ -63,7 +69,7 @@ import { WarningMessage } from "../../../components/components.jsx";
                             <CircleDollarSignIcon size={35}/>    
                         </button>
             </div>
-            {views[popUpView]}
+            { menuOptions && menuOptions() }
                    
                  
         </div>

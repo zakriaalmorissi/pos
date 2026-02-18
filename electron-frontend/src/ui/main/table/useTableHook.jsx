@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { data, useSearchParams } from "react-router-dom";
 import { launchIndicatorFailureModel, launchIndicatorModel } from "../components/models.";
 import { ACTIONS, PROCESSING_STATE } from "../components/constants";
-import { createBill, fetchBill, updateBill } from "../../../dataProvider/billProvider/billSilce";
+import { cleanBill, createBill, fetchBill, updateBill } from "../../../dataProvider/billProvider/billSilce";
 import { changeOrdersStatus } from "../../../dataProvider/orderProvider/orderSlice";
 
 
@@ -29,18 +29,21 @@ export default function useTableHook(){
         message: null,
     });
 
-    
-    const viewDpn = table?.bills.length 
     const [selectedBill, setSelectBill] = useState(null);
+    const [addBill, setAddBill] = useState(false);
     // Derived state but must listen to user interactions
+    const viewDpn = table?.bills.length 
     const view = useMemo(() => {
         if (!table) return null;
         const count = table.bills.length ?? 0;
+        if (addBill) return "createBill";
         if (count === 0) return "createBill";
         if (count === 1)  return "displayBill";
         return selectedBill ? "displayBill": "selectBill";
 
-    }, [viewDpn, selectedBill]);
+    }, [viewDpn, selectedBill, addBill]);
+    // Save a ref for fetching the bill abort it accordingly
+    const activeBillRequest = useRef(null);
  
     
 const firstTableBill =  table?.bills[0];
@@ -54,11 +57,13 @@ const resetModelProcessingState = () => {
     })
 }
 
-
+// Auto load data if there is any selected bill or table has only one bill
 useEffect(() => {
     if (!billToLoad) return;
     // Load the bill 
     getTableBill(billToLoad);
+    // Abort the request 
+    return () => activeBillRequest.current?.abort();
 }, [billToLoad]);
 
 
@@ -78,7 +83,8 @@ const createTableBill = async (bill) => {
     });
     try {        
 
-        await dispatch(createBill(data)).unwrap();
+        const currentBill = await dispatch(createBill(data)).unwrap();
+        setSelectBill(currentBill);
         resetModelProcessingState();
     } catch (error) {
         setProcessingTableModel({
@@ -89,10 +95,14 @@ const createTableBill = async (bill) => {
     } finally {
         clearTimeout(timer); 
         clearTimeout(timerError);
+        setAddBill(false);
     }
 }
 
 const getTableBill = async (billId) => {
+    if (activeBillRequest.current) {
+        activeBillRequest.current?.abort();
+    }
     const timer = launchIndicatorModel({
         status: PROCESSING_STATE.LOADING,
         action: ACTIONS.GETTING,
@@ -105,11 +115,16 @@ const getTableBill = async (billId) => {
         message: "Took so long to Load the bill. Please check the network",
         setModel: (values) => setProcessingTableModel(values),
     });
+
+    // Save the bill active fetch request
+    const requestThunk = dispatch(fetchBill(billId));
+    activeBillRequest.current = requestThunk;
     try {
-        await dispatch(fetchBill(billId)).unwrap();
+        await requestThunk.unwrap();
         // Reset the processing model
         resetModelProcessingState();
     } catch (error) {
+        if (error.name === "AbortError") return; // This is not a real error;
         setProcessingTableModel({
             status: PROCESSING_STATE.ERROR,
             action: ACTIONS.GETTING,
@@ -136,10 +151,9 @@ const updateTableBill = async (bill) => {
     }
 }
 
-const selectTableBill = (bill) => {
-    setSelectBill(bill);
-}
-
+const selectTableBill = (bill) => setSelectBill(bill);
+// For adding more than one bill for the current table;
+const addNewTableBill = () => setAddBill(true);
 
 const changeTableOrdersStatus = () => dispatch(changeOrdersStatus());
 
@@ -149,9 +163,10 @@ return {
         table: table,
         tableCrud: {
             getTableBill, 
-            createTableBill, 
+            createTableBill,
             selectTableBill,
-            updateTableBill
+            updateTableBill, 
+            addNewTableBill,
         },
         changeTableOrdersStatus,
         tableProcessing: processingTableModel,

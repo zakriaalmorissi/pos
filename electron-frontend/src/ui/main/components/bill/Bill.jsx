@@ -9,6 +9,7 @@ import Indicator from "../Indicator.jsx";
  export function Bill({ 
     handleCompleteAction,
     handlePaymentAction,
+    addNewBill
  }) {
   const {
     bill, 
@@ -21,7 +22,7 @@ import Indicator from "../Indicator.jsx";
    return <div className={style.mainBillContainer}>
         <div className={style.billContainer}>
                 <BillLeftSide 
-                    createNewBill={null} 
+                    createNewBill={addNewBill} 
                     handleBillDiscount = {makeBillDiscount}
                     deleteAllOrders={deleteAllOrders}
                     bill={bill}

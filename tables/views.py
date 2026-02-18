@@ -87,6 +87,8 @@ def create_table(request: Request, floor_id: int)-> Response:
             return Response({"error": unique_name_error[0]}, status=400)
         return Response({"error": "Invalid data", "message": serializer.errors}, status=400)
 
+
+
 @authentication_classes([JWTAuthentication])  
 @permission_classes([IsAuthenticated])
 @api_view(['POST', 'GET'])
@@ -119,27 +121,29 @@ def update_table_data(data: dict) -> Response:
 
 
 @api_view(["POST", "PUT"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def move_table_bills_view(request: Request)-> Response:
     data: dict = request.data
-    sender_table = data.get("senderTable", None)
-    receiver_table = data.get("receiverTable", None)
-    
-    if sender_table and receiver_table: 
-        receiver_table = Table.objects.filter(id = receiver_table["id"]).first()
-        sender_table = Table.objects.filter(id=sender_table["id"]).first()
+    sender_table_id = data.get("senderTable", None)
+    receiver_table_id = data.get("receiverTable", None)
+
+    if sender_table_id and receiver_table_id:
+        receiver_table = Table.objects.filter(id = receiver_table_id).first()
+        sender_table = Table.objects.filter(id=sender_table_id).first()
         if receiver_table and sender_table: 
             sent_bills = Bill.objects.filter(table = sender_table.id)
             for bill in sent_bills: 
                 bill.table = receiver_table
                 bill.save()
             serailize_receiver_table = SerializeTables(receiver_table)
+            # Notify others
             send_table_update(receiver_table)
             send_table_update(sender_table)
             return Response(serailize_receiver_table.data, status=status.HTTP_200_OK)
 
 
-    # return the tables 
-    return Response({"error": "Faild to move table bills"}, status=status.HTTP_200_OK)
+    return Response({"error": "Faild to move table bills"}, status=status.HTTP_400_BAD_REQUEST)
   
 
 
@@ -170,17 +174,21 @@ def take_out_bills_view(request:Request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 def create_bill(request: Request) -> Response:
     data: dict = request.data
     serialize = SerializeBill(data=data)
-    if serialize.is_valid():
-        serialize.save()
-        table = Table.objects.filter(id = serialize.data.get("table")).first()
-        print(table)
-        print(serialize.data)
+    if not serialize.is_valid():
+        return Response(serialize.errors, status=status.HTTP_400_BAD_REQUEST)
+    instance = serialize.save()
+    table: Table | None = instance.table
+    if table:
         serializeTable = SerializeTables(table)
-        return Response({"bill": serialize.data, "table": serializeTable.data}, status=200)
-    return Response(serialize.errors, status=400)
+        return Response({"bill": serialize.data, "table": serializeTable.data}, status=status.HTTP_201_CREATED)
+    return Response(serialize.data, status=status.HTTP_201_CREATED)
+   
+    
     
 
 

@@ -14,7 +14,10 @@ import Indicator from "../components/Indicator.jsx";
 
 
 export default function SingleTable() {
-   const {table, tableCrud, view, 
+   const {
+    table, 
+    tableCrud, 
+    view, 
     tableProcessing, 
     resetModelProcessingState,
     changeTableOrdersStatus,
@@ -56,7 +59,7 @@ export default function SingleTable() {
             <Bill 
                 table={table} // 
                 handleCompleteAction={tableAction.releaseTable}
-                creatNewBill={null}            
+                addNewBill={tableCrud.addNewTableBill}         
             />
             {view === "createBill" && views.billForm}
             <Indicator 
