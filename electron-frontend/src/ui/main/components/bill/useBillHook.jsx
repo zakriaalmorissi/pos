@@ -2,7 +2,7 @@ import {  useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ACTIONS, PROCESSING_STATE } from "../constants";
 import { launchIndicatorModel } from "../models.";
-import {  clearOrders, createOrder } from "../../../../dataProvider/orderProvider/orderSlice";
+import {  clearOrders, createOrder, deleteAllOrders } from "../../../../dataProvider/orderProvider/orderSlice";
 import { clearBill, updateBill } from "../../../../dataProvider/billProvider/billSilce";
 import { updateTakeOutBill } from "../../../../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
 
@@ -70,14 +70,19 @@ export default function useBillHook (){
         }
     }
 
-    const deleteAllOrders = async () => { // no params
+    const deleteOrders = async () => { // no params
         // Delete all bill orders
+        try {
+           await  dispatch(deleteAllOrders(bill?.id)).unwrap();
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     const completeAction = () => {
         if (queuingOrders.current.length > 0) return;
         if (!table) {
-            dispatch(updateTakeOutBill(bill));
+           if(bill) dispatch(updateTakeOutBill(bill));
         }
         dispatch(clearOrders()); dispatch(clearBill());
         
@@ -88,7 +93,7 @@ export default function useBillHook (){
         bill,
         makeOrder,
         makeBillDiscount,
-        deleteAllOrders,
+        deleteOrders,
         completeAction,
         billProcssing: billProcessingModel,
         resetState: reSetProcessingModelState,

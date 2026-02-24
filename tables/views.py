@@ -11,6 +11,10 @@ from rest_framework.request import Request
 
 from accounts.models import CustomUser
 from .service_layer import *
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
+
 
 
 
@@ -173,12 +177,20 @@ def take_out_bills_view(request:Request):
 
 
 
+# Django complex model ---> Json Layer 
+# Django objects     <---  Json layer
+
+# Django ORM <--> drf  S <--> parser  
+
+
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
 @authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def create_bill(request: Request) -> Response:
     data: dict = request.data
-    serialize = SerializeBill(data=data)
+    # Normalize the coming data 
+    bill = convert_dict_key(data=data)
+    serialize = SerializeBill(data=bill)
     if not serialize.is_valid():
         return Response(serialize.errors, status=status.HTTP_400_BAD_REQUEST)
     instance = serialize.save()
@@ -191,31 +203,24 @@ def create_bill(request: Request) -> Response:
     
     
 
-
 @api_view(["POST", "GET", "DELETE", "PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def bill_view (request: Request, bill_id: int) -> Response: 
-    # this is gonna return the bill info
-    try:
-        bill = Bill.objects.get(id=bill_id)
-    except Bill.DoesNotExist:
-        return Response({"error": "Object not found"}, status=status.HTTP_404_NOT_FOUND)
-
+    bill = get_object_or_404(Bill, bill_id) 
     if request.method == "PUT":
-        return update_bill(request=request, bill=bill)
-    serialize = SerializeBill(bill)
-    return Response(serialize.data)
-
-
-def update_bill(request: Request, bill)-> Response: 
-    data: dict = request.data
-    table = Table.objects.get(id=bill.id)
-    serializeTable = SerializeTables(table)
-    serialize = SerializeBill(bill, data=data, partial=True)
-    if serialize.is_valid():
-        serialize.save()  
-        return Response(serialize.data, status=status.HTTP_200_OK)
+        # Convert from camel case into snake case
+        data: dict = convert_dict_key(request.data)
+        serializer = SerializeBill(bill, data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+    if request.method == "DELETE":
+        delete = bill.delete()
     
-    return Response({"bill": serialize.data, "table": serializeTable.data}, status=status.HTTP_200_OK)
+    return Response(SerializeBill(bill).data, status=status.HTTP_200_OK)
 
 
 
@@ -225,16 +230,39 @@ def orders_view(request:Request, bill_id: int) -> Response:
     serializer = SerializeOrder(orders, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+@api_view(["POST", "DELETE"])
+def delete_all_bill_orders(request: Request, bill_id: int)->Response:
+    bill = get_object_or_404(Bill, bill_id)
+    print(SerializeBill(bill).data)
+    orders: list = Order.objects.filter(bill=bill.pk)
+    if len(orders): 
+        for order in orders:
+            order.delete()
+        print(f"After deleting all the ordes {SerializeBill(bill).data}")
+        return Response({"success": "All orders deleted successfully", "bill": SerializeBill(bill).data})
+        
+
+
+
+
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(["GET", "PUT", "DELETE", "POST"])
 def single_order_view(request: Request, order_id:int) -> Response:
+    order = get_object_or_404(Order, id=order_id)
+    print(order)
+    data: dict = convert_dict_key(request.data)
+    print(data)
     if request.method == "PUT":
-        return update_order(request=request, id=order_id)
+        serialize = SerializeOrder(order, data=data, partial = True)
+        serialize.is_valid(raise_exception=True)
+        saved_order: Order = serialize.save()
+        print(saved_order)
+        return Response( serialize.data, status=status.HTTP_200_OK)
     
     if request.method == "DELETE":
         try:
-            order =  Order.objects.get(id=order_id)
             bill = order.bill
             order.delete()
             serialize_bill = SerializeBill(bill)
@@ -245,69 +273,31 @@ def single_order_view(request: Request, order_id:int) -> Response:
     
 
 
-
-
-def update_order(request: Request, id:int) -> Response:
-    try:
-        get_order = Order.objects.get(id=id)
-    except Order.DoesNotExist:
-        return Response({"error": "object does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    
-    data: dict = request.data
-    condiments = data.get('condiments', None)
-    if (condiments):
-        condiments += get_order.condiments 
-        data['condiments'] = condiments
-
-    
-    serialize = SerializeOrder(get_order, data=data, partial=True)
-    if serialize.is_valid():
-        serialize.save()
-        return Response(serialize.data, status=status.HTTP_200_OK)
-    return Response(serialize.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
+@api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-@api_view(["POST"])
+@transaction.atomic
 def create_order(request: Request) -> Response:
-    # Update the bill price along with creating the price 
-    id = request.data.get('id', None)
-    name = request.data.get('name', None)
-    price = request.data.get("price", None)
-    bill_id = request.data.get('bill', None)
-    order_status = request.data.get("status", None)
-        
-    # Get the table in order to update its status once the order gets created 
-    table_id: int | None = request.data.pop('table', None)
-    
-    if table_id:
-        try: 
-            table = Table.objects.get(id=table_id)
-        except Table.DoesNotExist:
-            return Response({"error": "Table does not exist"}, status=400)
-    
-    
+    # Bill related, meaning if any order is created bill must be updated accordingly 
+    # Can be table related if the it's come from a table form
+    data: dict = request.data
+    # Normalize the order 
+    order: dict = convert_dict_key(data=data)
     # Get the bill in order to the update its total price 
-    try:
-        bill = Bill.objects.get(id=bill_id)
-    except Bill.DoesNotExist:
-        return Response({"error": "Bill does not exist"},  status=status.HTTP_404_NOT_FOUND)
-    
-    serialize = SerializeOrder(data={
-        "id": id, "food_name": name, 
-        "price": price, "bill": bill.pk,
-        "status": order_status 
-    })
-    serialize_bill = SerializeBill(bill)
-    
-    if serialize.is_valid():
-        serialize.save()
-        return Response({"order": serialize.data, "bill": serialize_bill.data}, status=200)
-    return Response(serialize.errors, status=400)
-
-
+    created_order = SerializeOrder(data=order)
+    created_order.is_valid(raise_exception=True)
+    # update the bill 
+    order_instance: Order = created_order.save()
+    Bill.objects.filter(id = order_instance.bill_id).update(
+        total = F("total") + order_instance.total_price,
+        updated_at = timezone.now()
+    ) 
+    return Response(
+        {
+        "order": created_order.data, 
+        "bill": SerializeBill(Bill.objects.get(id=order_instance.bill_id) ).data
+        },
+        status=status.HTTP_201_CREATED)
 
 
 def delete_object(request: Request, model: any) -> Response:

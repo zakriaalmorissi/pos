@@ -10,7 +10,8 @@ urlpatterns = [
     path(route="create_table/<int:floor_id>/", view=views.create_table ),
     path(route='table/<int:id>/', view=views.single_table_view),
     path(route="delete_table/<int:id>/", view=views.delete_table,),
-    path(route="move-table-bills/", view=views.move_table_bills_view)
+    path(route="move-table-bills/", view=views.move_table_bills_view),
+    path(route="delete-all-orders/<int:bill_id>/", view=views.delete_all_bill_orders,)
  
 ]
 

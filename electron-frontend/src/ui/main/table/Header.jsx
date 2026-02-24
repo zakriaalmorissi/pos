@@ -6,7 +6,7 @@ import { useState } from "react";
 
 export function Header ({tableName, overrideBillCustomer, changeOrderStatus}) {
     const [dispalyNumericKeyboard, setDisplayNumericKeyboard] = useState(false);
-    const {bill } = useSelector(s => s.bill);
+    const {bill} = useSelector(s => s.bill);
     const {ordersStatus} = useSelector( s => s.order);
     // need to get the bill updated 
     const onOverrideBillCustomer = (value) => {

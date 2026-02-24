@@ -39,7 +39,10 @@ export const createOrder = createAsyncThunk(
           url: URL,
           data: data
         })
-      dispatch(overrideBill(cleanBill(response.bill)));
+        const bill = cleanBill(response.bill);
+        if (bill) {
+          dispatch(overrideBill(bill));
+        }
       return response.order;
        } catch (error) {
       if (error instanceof NetworkError) {
@@ -98,6 +101,33 @@ export const deleteOrder = createAsyncThunk (
   }
 );
 
+export const deleteAllOrders = createAsyncThunk(
+  'order/deleteAllOrders',
+  async(billId, {dispatch, rejectWithValue, signal}) => {
+    const URL = `${url}api/delete-all-orders/${billId}/`;
+    try {
+      const response = await api.delete({
+        url: URL,
+        signal: signal
+      })
+      const bill = cleanBill(response.bill);
+      console.log(bill)
+      /// Override the bill data
+      if (bill) {
+        dispatch(overrideBill(bill));
+      }
+      return response;
+    } catch (error) {
+      if (error instanceof AbortRequestError) {
+        return rejectWithValue({aborted: true});
+      } else if (error instanceof NetworkError) {
+        return rejectWithValue({message: error?.message, hint: error?.hint});
+    }
+    return rejectWithValue(error);
+  }
+  }
+);
+
 export const cleanOrder = (order) => {
   if (!order) return;
   /// Clean the fetched order to make it more readable following the javascript naming convention
@@ -126,7 +156,7 @@ export const cleanOrder = (order) => {
   // Return the cleaned order
   return {
           id: order.id,
-          name: order.food_name,
+          name: order.name,
           totalPrice: Number(order.total_price ?? 0),
           price: Number(order.price ?? 0),
           bill: order.bill,
@@ -227,6 +257,9 @@ const orderSlice = createSlice({
         .addCase(updateOrder.rejected, (state, action)=> {
           state.orderError = `Failed to update the order. ${action.payload?.hint?? ""}`;
 
+        })
+        .addCase(deleteAllOrders.fulfilled, (state, action) => {
+          state.orders = [];
         })
     }
 

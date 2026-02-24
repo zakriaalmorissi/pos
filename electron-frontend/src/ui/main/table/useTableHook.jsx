@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { data, useSearchParams } from "react-router-dom";
 import { launchIndicatorFailureModel, launchIndicatorModel } from "../components/models.";
 import { ACTIONS, PROCESSING_STATE } from "../components/constants";
-import { cleanBill, createBill, fetchBill, updateBill } from "../../../dataProvider/billProvider/billSilce";
+import { createBill, fetchBill, updateBill } from "../../../dataProvider/billProvider/billSilce";
 import { changeOrdersStatus } from "../../../dataProvider/orderProvider/orderSlice";
 
 
@@ -140,13 +140,14 @@ const getTableBill = async (billId) => {
 
 const updateTableBill = async (bill) => {
     try {
-        await dispatch(updateBill({billId: bill?.id, data: bill})).unwrap();
+        const newBill = await dispatch(updateBill({billId: bill?.id, data: bill})).unwrap();
+        console.log(newBill)
         resetModelProcessingState();
     } catch (error) {
         setProcessingTableModel({
             status: PROCESSING_STATE.ERROR,
             action: ACTIONS.UPDATING,
-            message: `Failed update bill. ${error?.hint ?? ""}`,
+            message: `Failed to update bill. ${error?.hint ?? ""}`,
         })
     }
 }

@@ -25,7 +25,7 @@ import { cleanTable } from "../tablesProvider/tableModels";
             total: Number(bill.total ?? 0),
             finalPrice: Number(bill.final_price?? 0),
             createdAt: bill.created_at ?? 0,
-            updatedAt: bill.update_at ?? 0
+            updatedAt: bill.updated_at ?? 0
         }
     }
 
@@ -90,17 +90,13 @@ export const createBill = createAsyncThunk(
 export const updateBill = createAsyncThunk(
     'bill/updateBill',
    async ({billId, data}, {rejectWithValue, dispatch}) => {
+    console.log(data);
         const URL =  `${url}api/bill/${billId}/`;
         try {
           const response = await api.put({
             url: URL,
             data: data,
           });
-            if (response.table) {
-                const table = cleanTable(response.table);
-                dispatch(updateTables(table));
-                return cleanBill(response.bill);
-           }
         return cleanBill(response);
         } catch (error) {
             return rejectWithValue(error);
@@ -132,6 +128,7 @@ const billSlice = createSlice({
             state.loadingUpdate = false;
         },
         overrideBill: (state, action) => {
+            console.log(action)
             state.bill = action.payload;
         }
     },

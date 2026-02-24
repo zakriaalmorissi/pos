@@ -172,7 +172,7 @@ class SerializeOrder(ModelSerializer):
         model = Order
         fields = [ 
                 'id', 'bill', 
-                  'food_name','quantity', 'total_price',  'is_ordered',
+                  'name','quantity', 'total_price',  'is_ordered',
                   'condiments','price' ,'status', 'created_at',
                   'has_table',
                 'updated_at'

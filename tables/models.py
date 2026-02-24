@@ -103,7 +103,7 @@ def validate_positive(value):
 
 class Order(models.Model):
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="orders")
-    food_name = models.CharField(max_length=240)
+    name = models.CharField(max_length=240)
     quantity = models.PositiveIntegerField(default=1, validators=[validate_positive])
     price = models.DecimalField(max_digits=10, decimal_places=2)
     condiments = models.CharField(max_length=400, blank=True)
@@ -119,23 +119,5 @@ class Order(models.Model):
     
 
     def __str__(self) -> str:
-        return f"name: {self.food_name}, condiments: {self.condiments}"
+        return f"name: {self.name}, condiments: {self.condiments}"
  
- 
-           
-# Helper function for the bill total 
-def update_bill_total(bill: Bill) -> None:
-    if bill is not None: 
-        total = sum(order.total_price for order in bill.orders.all())
-        bill.total = total
-        bill.save(update_fields=["total", "updated_at"])
-
-
-@receiver (post_save, sender=Order)
-def update_bill_when_order_saved(sender, instance: Order, **kwargs):
-    update_bill_total(instance.bill)
-
-
-@receiver(post_delete, sender=Order)
-def update_bill_on_order_delete(sender, instance: Order, **kwargs):
-    update_bill_total(instance.bill)

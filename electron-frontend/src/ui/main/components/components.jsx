@@ -48,7 +48,7 @@ export function OrderOptions ({
     }
 
     const onSave = () => {
-        overrideQuantity(number);
+        overrideQuantity({id: order?.id, quantity: number});
     }
     return <div 
         className='pop-up-page'

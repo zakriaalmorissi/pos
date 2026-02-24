@@ -14,7 +14,7 @@ import Indicator from "../Indicator.jsx";
   const {
     bill, 
     makeOrder, makeBillDiscount,
-    deleteAllOrders, 
+    deleteOrders, 
     completeAction, billProcssing,
     resetState
     } = useBillHook();
@@ -24,7 +24,7 @@ import Indicator from "../Indicator.jsx";
                 <BillLeftSide 
                     createNewBill={addNewBill} 
                     handleBillDiscount = {makeBillDiscount}
-                    deleteAllOrders={deleteAllOrders}
+                    deleteAllOrders={deleteOrders}
                     bill={bill}
                      />
                     <Orders />

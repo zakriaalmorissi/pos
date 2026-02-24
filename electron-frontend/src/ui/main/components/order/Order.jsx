@@ -102,7 +102,7 @@ function OrderCard({order, bill, orderActions}) {
                     overridePrice={()=> setActivePopUp("numeric-keyboard")}
                     lineMark={()=> setActivePopUp('line-mark')}
                     addCondiments={()=> setActivePopUp('condimentsComponent')}
-                    overrideQuantity={(ordr)=>  {hideActivePopUp(); orderActions.update(ordr)}}
+                    overrideQuantity={(ordr)=> {hideActivePopUp(); orderActions.update(ordr)}}
                     order={order}
                     navigateBack={hideActivePopUp}
                 
@@ -124,8 +124,8 @@ function OrderCard({order, bill, orderActions}) {
                 />),
             "numeric-keyboard": (
                 <NumericKeyBoard 
-                    value={order}
-                    onSave={(ordr) => { hideActivePopUp(); orderActions.update(ordr) }}
+                    value={order?.price}
+                    onSave={(price) => { hideActivePopUp(); orderActions.update({...order, price: price}) }}
                     onCancel={hideActivePopUp}
                     title={"Override Price"}
                 
