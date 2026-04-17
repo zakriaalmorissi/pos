@@ -7,8 +7,11 @@ from django.db.models.signals import post_save, post_delete
 # Create your models here.
 
 
-# Orders models 
-# Tables models 
+class TablesGroup(models.Model):
+    class TablesType(models.TextChoices):
+        pass
+    name = models.CharField(max_length=20, unique=True)
+    tables_type = models.CharField(max_length=10, choices=None)
 
 class Floor(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -77,7 +80,7 @@ class Bill(models.Model):
     total = models.DecimalField(max_digits=11, default=0.00, decimal_places=2)
 
     def __str__(self) -> str:
-        return f"name: {self.name}, table: {self.table.name}"
+        return f"name: {self.name}"
     
 
     @property 

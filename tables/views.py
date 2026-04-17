@@ -18,6 +18,17 @@ from django.utils import timezone
 
 
 
+def app():
+    """""
+        bill, order, and products must behave according the bussiness type 
+            Serailization is gonna differ
+            rendering  also
+            and modeling
+        
+
+
+    """""
+
 
 
 @api_view(["GET", "POST"])
@@ -187,6 +198,7 @@ def take_out_bills_view(request:Request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def create_bill(request: Request) -> Response:
+    # Behave accroding to the bussiness type 
     data: dict = request.data
     # Normalize the coming data 
     bill = convert_dict_key(data=data)

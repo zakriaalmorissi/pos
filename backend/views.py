@@ -10,20 +10,8 @@ from .serialize import *
 from functools import wraps
 
 
-# A wrapper for only admin users accessing the view
-def admin_only_view(view_func):
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=401)
-        if not request.user.is_superuser:
-            return Response({"detail": "Admin access required."}, status=403)
-        return view_func(request, *args, **kwargs)
-    return _wrapped_view
-
 
 @api_view(["GET"])
-
 def home(request) -> Response:
     """
     Gets all categories with proper REST conventions
@@ -66,7 +54,7 @@ def food_and_drink_view(request, category: str) -> Response:
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@admin_only_view
+
 def create_food_or_drink(request, category: Category) -> Response:
     data = request.data.copy()
     data["category"] = category.id
@@ -77,7 +65,6 @@ def create_food_or_drink(request, category: Category) -> Response:
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@admin_only_view
 def delete_food_or_drink(request) -> Response:
     item_id = request.data.get("id")
     if not item_id:
@@ -109,7 +96,7 @@ def child_items_view(request, parent_id: int) -> Response:
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@admin_only_view
+
 def create_child_items(request, parent: ParentItems) -> Response:
     data = request.data.copy()
     data['category'] = parent.id
@@ -119,7 +106,7 @@ def create_child_items(request, parent: ParentItems) -> Response:
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@admin_only_view
+
 def update_child_items(request) -> Response:
     data = request.data.copy()
     item_id = data.pop("id", None)
@@ -137,7 +124,7 @@ def update_child_items(request) -> Response:
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@admin_only_view
+
 def delete_child_item(request) -> Response:
     item_id = request.data.get("id")
     if not item_id:
@@ -169,7 +156,6 @@ def condiments_view(request, food_name: str) -> Response:
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@admin_only_view
 def create_condiments(request, food: ChildItems) -> Response:
     data = request.data.copy()
     data["item"] = food.id

@@ -55,7 +55,8 @@ INSTALLED_APPS = [
 
 INSTALLED_APPS += [
     'connection',
-    'accounts'
+    'accounts',
+    'system_config',
 ]
 
 INSTALLED_APPS += ['rest_framework_simplejwt']
