@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
- 
+from system_config.models import Business
 
 
 class CustomUser(AbstractUser):
@@ -25,3 +24,10 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.name
+    
+
+class Staff(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="myprofile")
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="staff")
+    salary = models.PositiveIntegerField(default=0)
+

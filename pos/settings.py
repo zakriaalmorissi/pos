@@ -40,7 +40,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'backend',
+
     'rest_framework',
     'channels',
     'corsheaders',
@@ -50,13 +50,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tables.apps.TablesConfig'
 ]
 
 INSTALLED_APPS += [
-    'connection',
     'accounts',
     'system_config',
+    "products"
 ]
 
 INSTALLED_APPS += ['rest_framework_simplejwt']

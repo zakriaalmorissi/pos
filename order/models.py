@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from tables.models import  Table
 from system_config.models import Business
+from products.models import ProductVaraint
 
 class Order(models.Model):
 
@@ -50,7 +51,7 @@ class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order_items")
     name = models.CharField(max_length=50)
-    # product = models.ForeignKey(Product, blank=True, null=True)
+    product = models.ForeignKey(ProductVaraint, blank=True, null=True)
     quantity = models.PositiveIntegerField(default=1, validators=[validate_positive])
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=10, choices=OrderItemStatus.choices, default=OrderItemStatus.DINE_IN)

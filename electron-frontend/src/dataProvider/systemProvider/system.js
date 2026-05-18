@@ -1,17 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchData } from "./../../network/api";
 import { url } from "./../../network/constants";
+import api from  "./../../network/API"
 
 // Async thunk to fetch system data
 export const fetchSystem = createAsyncThunk(
   "system/fetchSystem",
   async () => {
-    return new Promise((resolve, reject) => {
-      fetchData(`${url}accounts/setup/`, {
-        getData: (res) => resolve(res),
-        apiError: (err) => reject(err),
-      });
-    });
+
   }
 );
 const systemSlice = createSlice({

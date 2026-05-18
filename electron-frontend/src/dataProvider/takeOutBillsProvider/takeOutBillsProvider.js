@@ -1,20 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchData } from "../../network/api";
 import { url } from "../../network/constants";
+import api from '../../network/API'
 
 
 export const fetchTakeOutBills  = createAsyncThunk(
     'takeOutBills/fetchTakeOutBills',
     async () => {
-        return new Promise((resolve, reject)=> {
-            fetchData(
-                `${url}api/take-out-bills/`,
-                {
-                    getData: (res) => resolve(res),
-                    apiError: (err) => reject(err)
-                }
-            )
-        })
+        const URL = `${url}`
+        return  api.get(
+
+        )
     }
 );
 

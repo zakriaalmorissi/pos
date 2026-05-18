@@ -1,5 +1,4 @@
 import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
-import { fetchData } from "./../../network/api";
 import api from "../../network/API";
 import { url } from "./../../network/constants";
 import { NetworkError, AbortRequestError } from "../../network/API";

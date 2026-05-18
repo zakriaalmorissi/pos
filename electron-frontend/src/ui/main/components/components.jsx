@@ -14,7 +14,7 @@ import {
 import '../style/billComponent.css'
 import { useCallback, useEffect, useState } from 'react'
 import { url } from '../../../network/constants'
-import { fetchData } from '../../../network/api'
+
 
 export function LoadingSpinner () {
     return <div className="spinner-container">

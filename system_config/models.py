@@ -1,11 +1,11 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from accounts.models import CustomUser
 from django.core.validators import FileExtensionValidator
 
 
+
 class Business(models.Model):
-    class SystemTypes(models.TextChoices):
+    class BusinessTypes(models.TextChoices):
         RESTAURANT = "restaurant", "Restaurant"
         SHOP = "shop", "Shop"
         CAFE = "cafe", "Cafe"
@@ -13,10 +13,10 @@ class Business(models.Model):
     name = models.CharField(max_length=50)
     business_type = models.CharField(
         max_length=12,
-        choices=SystemTypes.choices,
-        default=SystemTypes.RESTAURANT,
+        choices=BusinessTypes.choices,
+        default=BusinessTypes.RESTAURANT,
     )
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="businesses")
+    owner = models.ForeignKey("accounts.CustomUser", on_delete=models.CASCADE, related_name="businesses")
     currency = models.CharField(max_length=5)
     background_image = models.FileField(
     blank=True,

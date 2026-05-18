@@ -40,15 +40,15 @@ class BaseCustomUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)
-        CustomUser = CustomUser(**validated_data)
+        customUser = CustomUser(**validated_data)
 
         if password:
-            CustomUser.set_password(password)
+            customUser.set_password(password)
         else:
-            CustomUser.set_unusable_password()
+            customUser.set_unusable_password()
 
-        CustomUser.save()
-        return CustomUser
+        customUser.save()
+        return customUser
 
     def update(self, instance, validated_data):
         password = validated_data.pop("password", None)

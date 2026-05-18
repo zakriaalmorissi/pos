@@ -6,4 +6,4 @@ class TablesConfig(AppConfig):
     name = 'tables'
 
     def ready(self):
-        import tables.signals
+       pass
