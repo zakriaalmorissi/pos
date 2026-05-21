@@ -28,3 +28,7 @@ from . import views
     ]
 
 """""
+
+urlpatterns = [
+    path("tables/", view=views.TablesGroupView.as_view())
+]

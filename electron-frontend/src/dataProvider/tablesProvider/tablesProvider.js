@@ -7,7 +7,7 @@ import { cleanTable } from "./tableModels";
 export const fetchTables = createAsyncThunk(
   "floors/fetchTables",
   async (__, {rejectWithValue}) => {
-    const URL = `${url}api/floors/`;
+    const URL = `${url}tables/`;
     try {
       return await api.get({url: URL});
     } catch (error) {

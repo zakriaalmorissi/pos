@@ -14,7 +14,6 @@ class CatelogView(APIView):
 
     def get(self, request):
         categories = Category.objects.all()
-        print(categories)
         serialize = self.serializer_class(categories, many=True)
         return Response(serialize.data)
         

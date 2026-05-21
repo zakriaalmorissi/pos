@@ -15,7 +15,7 @@ class Product(models.Model):
 
 
 
-class ProductVaraint(models.Model):
+class ProductVariant(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
     name = models.CharField(max_length=30)
@@ -28,7 +28,7 @@ class ProductVaraint(models.Model):
 
 class ModifierGroup(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    product_variant = models.ForeignKey(ProductVaraint, on_delete=models.CASCADE, related_name="modifier_groups")
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name="modifier_groups")
     name = models.CharField(max_length=30)
 
 class Modifier(models.Model):

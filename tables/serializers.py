@@ -1,16 +1,16 @@
-from .models import Table, Floor, Order, Bill, TableStatus
+from .models import Table, TablesGroup, Order, Bill, TableStatus
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from decimal import Decimal
 
 
-class SerializeFloor(ModelSerializer):
+class Serializegroup(ModelSerializer):
     tables = serializers.SerializerMethodField()
     class Meta:
-        model = Floor
+        model = group
         fields = ['id','name', 'tables']
 
-    def get_tables(self, obj: Floor) -> list: 
+    def get_tables(self, obj: group) -> list: 
         tables = obj.tables.all()
         return SerializeTables(tables, many=True).data
 
@@ -18,12 +18,12 @@ class SerializeFloor(ModelSerializer):
 
 
 class SerializeTables(ModelSerializer):
-    floor = serializers.PrimaryKeyRelatedField(queryset=Floor.objects.all())# what does this line of code actually do ?
+    group = serializers.PrimaryKeyRelatedField(queryset=TablesGroup.objects.all())# what does this line of code actually do ?
     bills = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     class Meta:
         model = Table
-        fields = ['id', 'floor','name', 'status', 'counted_bills', 'has_orders', 'bills']
+        fields = ['id', 'group','name', 'status', 'counted_bills', 'has_orders', 'bills']
     
     def get_bills(self, instance: Table):
         bills = instance.bills.all()
@@ -34,13 +34,13 @@ class SerializeTables(ModelSerializer):
 
     # when the do the update  and methods  get called
     def create(self, validated_data: dict)-> Table:
-            floor: Floor = validated_data.pop('floor', None)# How deos this get turned into a FLoor instance while i'm expecting an integer value ?
-            return Table.objects.create(floor=floor, **validated_data) 
+            group: group = validated_data.pop('group', None)# How deos this get turned into a group instance while i'm expecting an integer value ?
+            return Table.objects.create(group=group, **validated_data) 
             
     def update(self, instance: Table, validated_data: dict)-> Table :
-        floor: Floor = validated_data.pop('floor', None)
-        if floor:
-            instance.floor = floor
+        group: group = validated_data.pop('group', None)
+        if group:
+            instance.group = group
             
         instance.name = validated_data.get('name', instance.name)
         instance.save()    
@@ -126,12 +126,12 @@ class SerializeBill(ModelSerializer):
   
     
 class DetailedSerializeTable(ModelSerializer):
-    floor = serializers.PrimaryKeyRelatedField(queryset=Floor.objects.all())# what does this line of code actually do ?
+    group = serializers.PrimaryKeyRelatedField(queryset=group.objects.all())# what does this line of code actually do ?
     bills = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     class Meta: 
         model = Table
-        fields = ['id', 'floor','name', 'status', 'counted_bills', 'has_orders', 'bills']
+        fields = ['id', 'group','name', 'status', 'counted_bills', 'has_orders', 'bills']
 
 
       
@@ -147,14 +147,14 @@ class DetailedSerializeTable(ModelSerializer):
         
 
     def create(self, validated_data: dict) -> Table:
-        floor = validated_data.pop('floor')
-        return Table.objects.create(floor=floor, **validated_data)
+        group = validated_data.pop('group')
+        return Table.objects.create(group=group, **validated_data)
     
     
     def update(self, instance: Table, validated_data: dict)-> Table:
-        floor = validated_data.pop('floor', None)
-        if floor:
-            instance.floor = floor
+        group = validated_data.pop('group', None)
+        if group:
+            instance.group = group
         
         instance.name = validated_data.get('name', instance.name)
         instance.save()

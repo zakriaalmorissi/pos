@@ -29,8 +29,9 @@ function LaunchStateProvider ({children})  {
 
 function App () {
   return <LaunchStateProvider>
-        <AppRoutes/>
-  
+    <BootLoader>
+         <AppRoutes/>
+    </BootLoader>
   </LaunchStateProvider> 
     
 

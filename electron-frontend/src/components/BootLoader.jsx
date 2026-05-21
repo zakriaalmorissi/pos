@@ -1,13 +1,9 @@
  import { useEffect, useState } from "react"
 import { LAUNCHING_STATE, url } from "../network/constants"
 import { useDispatch } from "react-redux"
-import { fetchSystem } from "../dataProvider/systemProvider/system"
-import { postData } from "../network/api"
 
 import { fetchTables } from "../dataProvider/tablesProvider/tablesProvider"
-import { fetchTakeOutBills } from "../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
 import { fetchMenu } from '../dataProvider/menuProvider/menuProvider';
-import { LoginForm } from "../ui/admin/userForm/login";
 import { updateTables } from '../dataProvider/tablesProvider/tablesProvider';
 import { cleanTable } from "../dataProvider/tablesProvider/tableModels"
 import { useContext } from "react"
@@ -44,29 +40,11 @@ export default function  BootLoader ({children}) {
     const {state, message} = useInitializeData()
     const { socket, } = useWebSocketTables()
 
-    if (state === LAUNCHING_STATE.LOGIN) {
-      return <LoginForm/>
+
+
+    
+    return children;
     }
-
-    if (state === LAUNCHING_STATE.CONFIG) {
-      // Return the setting up page 
-      return <div>Configuring ...</div>
-    }
-
-    if (state === LAUNCHING_STATE.ERROR) {
-      return <div>
-        Oooops ... {message}
-      </div>
-    }
-
-    if (state === LAUNCHING_STATE.READY) {
-      return children;
-    }
-
-
-     return <LaunchingSystemIndicator message={message}/>
-
-}
 
 
 
@@ -75,45 +53,8 @@ function useInitializeData () {
     const dispatch = useDispatch();
 
 
-    useEffect(()=> {
-        loadSystemConfig();
-    }, [])
 
-    async function loadSystemConfig  () {
-        changeLaunchingState({
-          value: LAUNCHING_STATE.LOADING
-        })
-        try {
-
-          let system =  await dispatch(fetchSystem()).unwrap();
-          system = system.data
-          if (system.hasSuperAdmin && system.hasAccount) {
-            // Go to the authentication step
-            changeLaunchingState({
-                value: LAUNCHING_STATE.AUTH,
-                message: "Authentication .."
-
-            })
-          } else {
-            // Configure the system 
-            changeLaunchingState({
-                value: LAUNCHING_STATE.CONFIG, 
-                message: "Please Wait ..."
-            })
-
-          }
-
-
-        } catch (err) {
-            changeLaunchingState({
-                value: LAUNCHING_STATE.ERROR,
-                message: `Ooops... Error occured: ${err?.hint ?? ""}`
-            })
-
-        }
-    }
-
-   
+  
     // Authenticate the user 
     useEffect(()=> {
         if (state.value === LAUNCHING_STATE.AUTH) {
@@ -159,9 +100,9 @@ function useInitializeData () {
 
     // 3. Load the data like tables, menu, and bills
     useEffect(()=> {
-        if (state.value !== LAUNCHING_STATE.LOAD_DATA) return;
         // Load the data 
         loadData();
+        console.log("getting tables ")
 
     }, [state.value]);
 

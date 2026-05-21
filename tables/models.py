@@ -2,34 +2,28 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from accounts.models import CustomUser
-from django.dispatch import receiver
-from django.db.models.signals import post_save, post_delete
+from system_config.models import Business
 # Create your models here.
 
 
 class TablesGroup(models.Model):
     class TablesType(models.TextChoices):
-        pass
-    name = models.CharField(max_length=20, unique=True)
-    tables_type = models.CharField(max_length=10, choices=None)
+        NORMAL = "noraml", "Normal"
+        RESERVATION = "reservation", "Reservation"
+        BUFFET = "buffet", "Buffet"
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="table_groups")
+    name = models.CharField(max_length=30, unique=True)
+    tables_type = models.CharField(max_length=20, choices=TablesType.choices, default=TablesType.NORMAL)
 
-class Floor(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    
-    def __str__(self)-> str :
-        return self.name
 
 class Table(models.Model):
-    floor = models.ForeignKey(Floor, on_delete=models.CASCADE, related_name="tables")
+    group = models.ForeignKey(TablesGroup, on_delete=models.CASCADE, related_name="tables")
     name = models.CharField(max_length=15, unique=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="user_tables", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    
-    
-    def __str__(self)-> str:
-        return f"order: {self.name}, floor: {self.floor.name}"
+
     
     
     @property
