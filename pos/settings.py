@@ -56,7 +56,8 @@ INSTALLED_APPS += [
     'accounts',
     'system_config',
     "products",
-    "tables"
+    "tables",
+    "order"
 ]
 
 INSTALLED_APPS += ['rest_framework_simplejwt']

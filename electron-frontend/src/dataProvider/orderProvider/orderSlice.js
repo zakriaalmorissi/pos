@@ -33,7 +33,7 @@ export const updateOrder = createAsyncThunk(
 export const createOrder = createAsyncThunk(
     "order/createOrder",
    async ({data}, {rejectWithValue, dispatch}) => {
-      const URL = `${url}api/create-order/`;
+      const URL = `${url}orders/1/2/create-order-item/`;
       try {
         const response = await api.post({
           url: URL,
@@ -60,7 +60,7 @@ export const fetchOrders = createAsyncThunk(
     async (billId, {rejectWithValue, signal}) => {
     console.log("fecthing orders is called");
     console.log(`Current bill is ${billId}`);
-    const URL = `${url}api/orders-view/${billId}/`;
+    const URL = `${url}orders/1/${billId}/order-items/`;
     try {
       const response = await api.get({
         url: URL,

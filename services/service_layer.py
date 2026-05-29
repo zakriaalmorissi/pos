@@ -9,6 +9,7 @@ import re
 
 
 
+
 def make_json_safe(data):
     """
     Recursively convert Decimal and other non-serializable types
@@ -22,14 +23,6 @@ def make_json_safe(data):
         return float(data)
     return data
 
-def normalize_bill():
-    pass
-
-def get_object_or_404(model, id): 
-    try:
-       return model.objects.get(id = id)
-    except model.DoesNotExist: 
-        return Response({"error": "Object is not found"}, status=status.HTTP_404_NOT_FOUND)
 
 def camel_to_snake(name: str) -> str:
     s1 = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)

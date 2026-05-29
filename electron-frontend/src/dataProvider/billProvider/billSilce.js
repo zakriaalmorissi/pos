@@ -32,7 +32,7 @@ import { cleanTable } from "../tablesProvider/tableModels";
 export const fetchBill =  createAsyncThunk(
     "bill/fetchbill",
     async (billId, {rejectWithValue, signal}) => {
-        const URL =  `${url}api/bill/${billId}/`;
+        const URL =  `${url}orders/1/single-order/${billId}/`;
         try {
            const response = await api.get({
             url: URL,
@@ -56,20 +56,21 @@ export const fetchBill =  createAsyncThunk(
     }
 );
 
-
 export const createBill = createAsyncThunk(
     'bill/createBill',
     async( data ,{rejectWithValue, dispatch}) => {
-         const URL = `${url}api/create-bill/`;
+         const URL = `${url}orders/1/create-order`;
          try {
             const response = await api.post({
                 url: URL,
                 data: data
             })
+          
             if (response.table) {
                 const table = cleanTable(response.table);
                 dispatch(updateTables(table));
-                return cleanBill(response.bill);
+                console.log(cleanBill(response))
+                return cleanBill(response);
            }
             return cleanBill(response); // already parsed from json format 
          } catch (error) {
@@ -90,7 +91,7 @@ export const updateBill = createAsyncThunk(
     'bill/updateBill',
    async ({billId, data}, {rejectWithValue, dispatch}) => {
     console.log(data);
-        const URL =  `${url}api/bill/${billId}/`;
+        const URL =  `${url}orders/1/single-order/${billId}/`;
         try {
           const response = await api.put({
             url: URL,
@@ -155,6 +156,7 @@ const billSlice = createSlice({
         })
         .addCase(createBill.fulfilled, (state, action)=> {
             state.bill = action.payload;
+            console.log(action)
             state.creatingBill = false;
         })
         .addCase(createBill.rejected, (state, action)=> {
