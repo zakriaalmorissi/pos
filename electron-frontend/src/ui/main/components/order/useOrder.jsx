@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders, deleteOrder, updateOrder, createOrder } from "../../../../dataProvider/orderProvider/orderSlice";
+import { fetchOrders, deleteOrder, updateOrder, createOrder } from "../../../../dataProvider/orderItemProvider/orderItemProvider";
 import { ACTIONS, PROCESSING_STATE } from "../constants";
 import { cleanBill } from "../../../../dataProvider/billProvider/billSilce";
 import { launchIndicatorFailureModel, launchIndicatorModel } from "../models.";

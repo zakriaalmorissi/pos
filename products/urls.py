@@ -4,5 +4,5 @@ from .views import *
 
 
 urlpatterns = [
-    path("catelog/", view=CatelogView.as_view())
+    path("catalog-view/", view=CatelogView.as_view())
 ]

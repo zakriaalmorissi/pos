@@ -1,35 +1,35 @@
-.mainBillContainer {
+.mainOrderContainer {
     display: flex;
     flex-direction: column;
-    height: 95%;
+    height: 90%;
 }
 
-.billContainer {
+.orderBodyContainer {
     display: flex;
     flex-direction: row;
-    height: 90vh;
+    height: 85vh;
     background-color: var(--main-bgs);
 
 }
 
 
-
-
-.billSideContainer {
+.orderSideContainer {
     display: flex;
     flex-direction: column;
     background-color: var(--secondary-colors);
     width: fit-content;
 }
 
-.sideDevContents {
+
+
+.sideContents {
     display: flex;
     flex-direction: column;
     background-color: rgb(14, 130, 240); color: white;
     height: 75%; width: 100%;
 }
 
-.sideDevContents button {
+.sideContents button {
     border: none;
     border-top: 1.4px solid white;
     border-bottom: 1.4px solid white;
@@ -38,7 +38,7 @@
 }
 
 
-.billBottomDev {
+.OrderBottomDev {
     display: flex;
     height: 9vh;
     justify-content:flex-start;
@@ -49,7 +49,7 @@
 
 }
 
-.billBottomDev button:hover {
+.OrderBottomDev button:hover {
     background-color: var(--buttons-hover);
 }
 .paymentButton {

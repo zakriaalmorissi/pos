@@ -32,7 +32,7 @@ class BaseOrderItemReadSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = [
             "name", "order",
-            "product", "qauntity",
+            "product", "quantity",
             "unit_price", "note", 
             "delivered", "total_price"
         ]
@@ -42,4 +42,4 @@ class OrderItemRestaurantReadSerializer(BaseOrderItemReadSerializer):
         Service charge and others are gonna be included in the future
     """
     class Meta(BaseOrderItemReadSerializer.Meta):
-        fields = OrderBaseReadSerializer.Meta.fields + ["status"]
+        fields = BaseOrderItemReadSerializer.Meta.fields + ["status"]

@@ -3,7 +3,7 @@ import { LAUNCHING_STATE, url } from "../network/constants"
 import { useDispatch } from "react-redux"
 
 import { fetchTables } from "../dataProvider/tablesProvider/tablesProvider"
-import { fetchMenu } from '../dataProvider/menuProvider/menuProvider';
+import { fetchCatalog } from '../dataProvider/catalogProvider/catalogProvider';
 import { updateTables } from '../dataProvider/tablesProvider/tablesProvider';
 import { cleanTable } from "../dataProvider/tablesProvider/tableModels"
 import { useContext } from "react"
@@ -98,11 +98,10 @@ function useInitializeData () {
 
     }
 
-    // 3. Load the data like tables, menu, and bills
+    // 3. Load the data like tables, catalog, and bills
     useEffect(()=> {
         // Load the data 
         loadData();
-        console.log("getting tables ")
 
     }, [state.value]);
 
@@ -110,10 +109,9 @@ function useInitializeData () {
         try {
         await Promise.all([
             dispatch(fetchTables()).unwrap(),
-            dispatch(fetchTakeOutBills()).unwrap(),
-            dispatch(fetchMenu()).unwrap(),
+            dispatch(fetchCatalog()).unwrap(),
         ]
-            
+          
         )
         changeLaunchingState({
             value: LAUNCHING_STATE.READY,

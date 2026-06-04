@@ -8,12 +8,12 @@ export function Menu ({handleOrder}) {
     const [items, setItems] = useState([]);
     const [itemsWithoutParents, setItemsWithuotParents] = useState([]);
     const [childItems, setChildItems] = useState([]);
-    const { menu } = useSelector(state => state.menu);
+    const { catalog } = useSelector(state => state.catalog);
   
 
     const getItems = (name) => {
         window.localStorage.setItem('lastItem', name);
-        let newItems = menu.find((item) => item.name === name)
+        let newItems = catalog.find((item) => item.name === name)
         setItems(newItems?.parentItems);
         // Clear fetched items 
         setItemsWithuotParents([]);
@@ -53,7 +53,7 @@ export function Menu ({handleOrder}) {
          <div className={style.foodContainer}>
                <div className={style.categories}>
                     {
-                        menu.map((category)=> {
+                        catalog.map((category)=> {
                             return <button 
                                 key={category.id}
                                 type="submit" 
@@ -125,7 +125,7 @@ function ChildItems({disPlayItems, items}){
                 <p>{item.name}</p>
                 {
                     item.children === null 
-                     && <p>{item.price}</p>
+                     && <p>{item.unitPrice}</p>
                 
                 } 
                 </button>

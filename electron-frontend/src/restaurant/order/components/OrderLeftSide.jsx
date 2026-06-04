@@ -1,28 +1,28 @@
 import { useState } from "react";
 import {CircleDollarSignIcon,MenuIcon, Save, ShoppingCart, SquareCheckBig, } from "lucide-react";
-import { DiscountComponent, BillOptions } from "../components.jsx";
-import style from './style/bill.module.css';
+import { DiscountComponent, OrderOptions } from "../components.jsx";
+import style from './style/order.module.css';
 import { WarningMessage } from "../../../components/components.jsx";
 
- export function BillLeftSide ({handleBillDiscount, createNewBill, deleteAllOrders, bill}) {
+ export function OrderLeftSide ({handleOrderDiscount, createNewOrder, deleteAllOrderItems, order}) {
     const [popUpView, setActivePopUpView] = useState("");
    
-    const onCreateNewBill = () => {
-        if (createNewBill && typeof createNewBill === "function" ) {
+    const onCreateNewOrder = () => {
+        if (createNewOrder && typeof createNewOrder === "function" ) {
             setActivePopUpView("");
-            createNewBill();
+            createNewOrder();
         }
     }
 
-    const onBillDiscount = (data) => {
+    const onOrderDiscount = (data) => {
         setActivePopUpView("");
-        handleBillDiscount(data);
+        handleOrderDiscount(data);
     }
 
-    const onDeleteAllOrders = () => {
+    const onDeleteAllOrderItems = () => {
         setActivePopUpView("");
         // Process the delete callback
-        deleteAllOrders();
+        deleteAllOrderItems();
     }
 
 
@@ -32,15 +32,15 @@ import { WarningMessage } from "../../../components/components.jsx";
             case "discount":
                 return (<DiscountComponent 
                     onBack={()=> setActivePopUpView("menuOptions")}
-                    onSubmit={onBillDiscount}
-                    bill={bill}
+                    onSubmit={onOrderDiscount}
+                    Order={order}
                     />);
             case "menu-options": 
                 return (
-                    <BillOptions
-                        createBill={onCreateNewBill}
+                    <OrderOptions
+                        createOrder={onCreateNewOrder}
                         onBack={()=> setActivePopUpView("")}
-                        billDiscount={()=> setActivePopUpView("discount")}
+                        OrderDiscount={()=> setActivePopUpView("discount")}
                         viodAll={()=> setActivePopUpView("warningMessage")}
                     />);
 
@@ -48,7 +48,7 @@ import { WarningMessage } from "../../../components/components.jsx";
                return (<WarningMessage 
              message={"This is gonna delete all of the orders !!"} 
              onCancel={()=> setActivePopUpView("menu-options")}
-             onContinue={onDeleteAllOrders}
+             onContinue={onDeleteAllOrderItems}
             />);
             default: return null;
             
@@ -57,8 +57,8 @@ import { WarningMessage } from "../../../components/components.jsx";
     }   
     
 
-    return  <div className={style.billSideContainer}>
-                    <div className={style.sideDevContents}>
+    return  <div className={style.orderSideContainer}>
+                    <div className={style.sideContents}>
                         <button  onClick={()=> setActivePopUpView("menu-options")}>
                             <MenuIcon size={40}/>
                         </button>

@@ -3,7 +3,7 @@ import  billSlice from './billProvider/billSilce';
 import orderSlice from './orderProvider/orderSlice';
 import  systemSlice from "./systemProvider/system";
 import  tablesSilce from './tablesProvider/tablesProvider';
-import menuSlice from './menuProvider/menuProvider'
+import catalogSlice from './catalogProvider/catalogProvider'
 import takeOutBillsSlice from "./takeOutBillsProvider/takeOutBillsProvider";
 
 
@@ -14,7 +14,7 @@ const store = configureStore({
         bill: billSlice,
         order: orderSlice,
         floors: tablesSilce,
-        menu: menuSlice,
+        catalog: catalogSlice,
         takeOutBills: takeOutBillsSlice
     }
 })

@@ -66,6 +66,8 @@ class OrderItem(models.Model):
     @property
     def total_price(self):
         return (self.unit_price * self.quantity)
+    def __str__(self):
+        return f"item name:{self.name}, order Id: {self.order.id}"
 
 
     
