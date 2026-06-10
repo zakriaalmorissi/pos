@@ -2,7 +2,7 @@ import { useState } from "react";
 import {CircleDollarSignIcon,MenuIcon, Save, ShoppingCart, SquareCheckBig, } from "lucide-react";
 import { DiscountComponent, OrderOptions } from "../components.jsx";
 import style from './style/order.module.css';
-import { WarningMessage } from "../../../components/components.jsx";
+import { WarningMessage } from "../../../setup/components.jsx";
 
  export function OrderLeftSide ({handleOrderDiscount, createNewOrder, deleteAllOrderItems, order}) {
     const [popUpView, setActivePopUpView] = useState("");

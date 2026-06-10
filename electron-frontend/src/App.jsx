@@ -1,5 +1,5 @@
 import { createContext, useState } from 'react';
-import BootLoader from './components/BootLoader';
+import BootLoader from './setup/BootLoader';
 import AppRoutes from './routes/routes';
 import { LAUNCHING_STATE } from './network/constants';
 

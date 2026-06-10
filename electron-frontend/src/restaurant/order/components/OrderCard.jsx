@@ -10,7 +10,7 @@ export default function OrderCard ({onPress, order}) {
             >
                 <p>Ref: {order.id}</p>
                 <p> Client: {order.name}</p>
-                <p>Total: {order.final_price?.toFixed(2)}</p>
+                <p>Total: {order.total?.toFixed(2)}</p>
         </div>
         <div className="orderCardPrinter">
             <Printer/>

@@ -1,6 +1,6 @@
 import { Table, Printer, User, RefreshCcw } from "lucide-react"
 import style from './../style/table.module.css';
-import { NumericKeyBoard } from "../components/components.jsx";
+import { NumericKeyBoard } from "../../../components/components.js";
 import { useDispatch, useSelector} from "react-redux";
 import { useState } from "react";
 

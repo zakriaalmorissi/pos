@@ -1,10 +1,11 @@
 import { Save, ShoppingCart } from "lucide-react";
 import style from './style/order.module.css';
 import { Menu } from "./Menu.jsx";
-import { orderItem} from "../orderItem/OrderItem.jsx";;
+import { OrderItems } from "../orderItem/OrderItem.jsx";;
 import { OrderLeftSide } from "./OrderLeftSide.jsx";
-import useBillHook from "./useBillHook.js";
+import useOrderHook from "./useBillHook.js";
 import Indicator from "../Indicator.jsx";
+import { OrderBody } from "./orderBody.jsx";
 
  export function Order({ 
     handleCompleteAction, // Handle releasing the table and printing the orders 
@@ -14,10 +15,17 @@ import Indicator from "../Indicator.jsx";
   const {
     order, 
     makeOrderItem, makeOrderDiscount,
-    deleteOrderItems, // Delete all items 
+    deleteAllOrderItems, // Delete all items 
     completeAction, orderProcssing,
     resetState // Reset the order state if a certain task
     } = useOrderHook();
+
+    const onCompleteAction =() => {
+        const success = completeAction()
+        if (success) {
+            handleCompleteAction
+        }
+    }
 
    return <div className={style.mainOrderContainer}>
         <div className={style.orderBodyContainer}>
@@ -27,7 +35,7 @@ import Indicator from "../Indicator.jsx";
                     deleteAllOrderItem={deleteOrderItems}
                     order={order}
                      />
-
+                <OrderBody order={order}/>
                 <Menu handleOrder={makeOrderItem}/> 
             
         </div>
@@ -35,7 +43,7 @@ import Indicator from "../Indicator.jsx";
             <button 
                 className={style.completeButton}
                 type="submit"
-                onClick={() => {completeAction(); handleCompleteAction()}} >
+                onClick={onCompleteAction} >
                 <Save size={40}/>
                 <p>Complete</p>
             </button>

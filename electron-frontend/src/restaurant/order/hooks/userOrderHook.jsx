@@ -2,63 +2,63 @@ import {  useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ACTIONS, PROCESSING_STATE } from "../constants";
 import { launchIndicatorModel } from "../models.";
-import {  clearOrders, createOrder, deleteAllOrders } from "../../../../dataProvider/orderItemProvider/orderItemProvider";
-import { clearBill, updateBill } from "../../../../dataProvider/billProvider/billSilce";
-import { updateTakeOutBill } from "../../../../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
+//import {  clearOrders, createOrder, deleteAllOrders } from "../../../../dataProvider/orderItemProvider/orderItemProvider";
+//import { updateTakeOutBill } from "../../../../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
+import { updateOrder, clearOrder } from "../../../dataProvider/orderProvider/orderSilce";
 
-
-export default function useBillHook (){
+export default function useOrderHook (){
     const dispatch = useDispatch();
-    const queuingOrders = useRef([]);
-    const {bill} = useSelector(s => s.bill);
-    const table = bill?.table ?? null;
+    const queuingOrderItems = useRef([]);
+    const {order} = useSelector(s => s.order);
+    const table = order?.table ?? null;
     // UI States 
-    const [billProcessingModel, setBillProcessingModel] = useState({
+    const [orderProcessingModel, setOrderProcessingModel] = useState({
         status: PROCESSING_STATE.IDLE,
         action: null,
         message: null
     })
-    const reSetProcessingModelState = () => setBillProcessingModel({
+    // Reset Order processing model 
+    const reSetProcessingModelState = () => setOrderProcessingModel({
         status: PROCESSING_STATE.IDLE,
         action: null,
         message: null,
     })
-    const makeOrder = async (order) => {
-        queuingOrders.current.push(order);
+    const makeOrderItem = async (orderItem) => {
+        queuingOrderItems.current.push(orderItem);
         const status = table? "dine_in": "takeaway";
-        const data = {...order, table: table, order: bill?.id, status: status};
+        const data = {...orderItem, table: table, order: bill?.id, status: status};
         console.log(data)
         const timer = launchIndicatorModel({
             status: PROCESSING_STATE.LOADING,
             action: ACTIONS.CREATING, 
-            message: "Making Order ..",
+            message: `adding ${orderItem?.name} item...`,
             setModel: (values) => setBillProcessingModel(values),
             time: 600
         })
 
         try {
-            await dispatch(createOrder({billId: bill?.id,data: data})).unwrap();
+            await dispatch(createOrderItem({orderId: order?.id, data: data})).unwrap();
             reSetProcessingModelState();
         } catch (error) {
             setBillProcessingModel({
                 status: PROCESSING_STATE.ERROR,
                 action: ACTIONS.UPDATING,
-                message: `Failed to make an order. ${error?.hint ?? ""}`,
+                message: `Failed to add the ${orderItem?.name} item. ${error?.hint ?? ""}`,
 
             })
         } finally {
             clearTimeout(timer);
             // Remove queuing orders;
-            const storedOrder = queuingOrders.current.find(ordr => ordr.id === order.id)
-            if (storedOrder) {queuingOrders.current.splice(storedOrder, 1)};
+            const storedOrderItem = queuingOrderItems.current.find(ordrItem => ordrItem.id === orderItem.id)
+            if (storedOrderItems) {queuingOrderItems.current.splice(storedOrderItem, 1)};
         }
     };
 
-    const makeBillDiscount = async (value) => {
-        const data = {...bill, discount: value};
+    const makeOrderDiscount = async (value) => {
+        const data = {discount: value};
         
         try {
-            await dispatch(updateBill({billId: bill?.id, data: data})).unwrap();
+            await dispatch(updateOrder({orderId: order?.id, data: data})).unwrap();
             reSetProcessingModelState();
         } catch (error) {
             setBillProcessingModel({
@@ -70,32 +70,34 @@ export default function useBillHook (){
         }
     }
 
-    const deleteOrders = async () => { // no params
+    const deleteAllOrderItems = async () => { // no params
         // Delete all bill orders
         try {
-           await  dispatch(deleteAllOrders(bill?.id)).unwrap();
+           await  dispatch(deleteAllOrderItems(order?.id)).unwrap(); // needs review
         } catch (err) {
             console.log(err);
         }
     }
 
     const completeAction = () => {
-        if (queuingOrders.current.length > 0) return;
-        if (!table) {
-           if(bill) dispatch(updateTakeOutBill(bill));
-        }
-        dispatch(clearOrders()); dispatch(clearBill());
+        if (queuingOrderItems.current.length > 0) return false;
+      //  if (!table) {
+          // if(order) dispatch(updateTakeOutBill(bill));
+       // }
+       // dispatch(clearOrders()); dispatch(clearBill());
+
+       return true;
         
     }
 
 
     return {
-        bill,
-        makeOrder,
-        makeBillDiscount,
-        deleteOrders,
+        order,
+        makeOrderItem,
+        makeOrderDiscount,
+        deleteAllOrderItems,
         completeAction,
-        billProcssing: billProcessingModel,
+        orderProcssing: orderProcessingModel,
         resetState: reSetProcessingModelState,
     }
 

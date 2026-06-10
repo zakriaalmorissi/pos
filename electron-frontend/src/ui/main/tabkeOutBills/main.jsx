@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import style from '../style/bills.module.css';
 import { StepBackIcon} from 'lucide-react'
 import { Link, useNavigate } from "react-router-dom";
-import  BillForm  from "../components/bill/billForm";
+import  BillForm  from "../../../components/bill/billForm";
 import { useDispatch, useSelector } from "react-redux";
 import { createBill } from "../../../dataProvider/billProvider/billSilce";
 import { addTakeOutBill } from "../../../dataProvider/takeOutBillsProvider/takeOutBillsProvider";
 import { TimeoutErrorMessageIndicator } from "../../components/components";
 
-import BillCard from "../components/bill/BillCard";
+import BillCard from "../../../components/bill/BillCard";
 
 
 export function BillsHome({}) {

@@ -7,6 +7,7 @@ from tables.serializer.read_serialize import _PrivateTableSerializer
 
 
 class OrderBaseReadSerializer(serializers.ModelSerializer):
+    order_items_length = serializers.SerializerMethodField()
     class Meta:
         model = Order
         fields = [
@@ -15,14 +16,22 @@ class OrderBaseReadSerializer(serializers.ModelSerializer):
             "is_paid", "status",
             "subtotal", "tax",
             "discount", "total",
-            "created_at", "updated_at"
+            "order_items_length",
+            "created_at", "updated_at",
+            
         ]
+    def get_order_items_length(self, obj):
+        count = obj.order_items.count()
+        return count
+
 
 class OrderRestaurantReadSerializer(OrderBaseReadSerializer):
     table = _PrivateTableSerializer(read_only=True)
     class Meta(OrderBaseReadSerializer.Meta):
         model = Order
-        fields = OrderBaseReadSerializer.Meta.fields +["table"] 
+        fields = OrderBaseReadSerializer.Meta.fields +["table", "service_charge"] 
+
+        # also include service charge 
         
 
 

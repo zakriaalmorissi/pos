@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { url } from "../../../network/constants";
-import { Bill } from "../components/bill/Bill";
+import { Bill } from "../../../components/bill/Bill";
 import style from '../style/bills.module.css'
 import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";

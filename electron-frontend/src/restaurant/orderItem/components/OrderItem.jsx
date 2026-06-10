@@ -1,62 +1,40 @@
 import { useState ,useMemo} from "react";
 import style from './order.module.css';
-import { CondimentsComponent, LineMarkComponent, OrderOptions, NumericKeyBoard } from "../components.jsx";
-import { WarningMessage } from "../../../components/components.jsx";
+import { CondimentsComponent, LineMarkComponent, OrderItemOptions, NumericKeyBoard } from "../components.jsx";
+import { WarningMessage } from "../../../setup/components.jsx";
 import { useSelector } from "react-redux";
-import useOrderHook from "./useOrder.jsx";
 import Indicator from "../Indicator.jsx";
 
 // this function needs to have a call back function to perform some necessary  updates to the parent component
-export function Orders() {
+export function OrderItems() {
     // Need to get bill updated according the ui the order events
-    const {bill, orderProcessing, loadOrders, resetOrderProcessing, orderActions} = useOrderHook();
-    const {orders} = useSelector( s => s.order)
+    const {order, orderItemProcessing, loadOrderItems, resetOrderItemProcessing, orderItemActions} = useOrderHook();
+    const {orderItems} = useSelector( s => s.orderItems)
 
   
     // Override the client name 
     return  <div className={style.ordersContainer}>
         <div className={style.ordersTopContent}>
-            <p>{bill?.name}</p>
+            <p>{order?.name}</p>
         </div>
-         <div className={style.ordersList}>
+         <div className={style.orderItemsList}>
                 {
-                    orders?.map((order)=> {
+                    orderItems?.map((orderItem)=> {
                        return <OrderCard 
-                            key={order?.id}
+                            key={orderItem?.id}
+                            orderItem={orderItem}
                             order={order}
-                            bill={bill}
-                            orderActions = {orderActions}
+                            orderItemActions = {orderItemActions}
                         />
                     })
                 }
             </div>
         <div className={style.ordersBottomContainer}>
-            <div className={style.titles}>
-                <p>Subtotal</p>
-                <p>Bill Discount</p>
-                <p>Service Charge</p>
-                <p>Tax</p>
-                <p>Total</p>
-
-            </div>
-            {
-              bill &&  <div className={style.valuesContainer}>
-                    <div className={style.subtotalContainer}> 
-                        <p>{bill?.ordersLength}</p>
-                        <p className={style.subtotal}>{bill?.total?.toFixed(2)}</p>
-                    </div>
-                    <div className={style.valuesContent}> 
-                        <p>{bill?.discount.toFixed(2)}</p>
-                        <p>{bill.serviceCharge.toFixed(2)}</p>
-                        <p>{bill.tax.toFixed(2)}</p>
-                        <p className={style.total}>{bill.finalPrice.toFixed(2)}</p>
-                    </div> 
-                </div>
-            }
+    
             <Indicator 
-                processingModel={orderProcessing}
-                resetState={resetOrderProcessing}
-                callbacks={{retryFetch: loadOrders}}
+                processingModel={orderItemProcessing}
+                resetState={resetOrderItemProcessing}
+                callbacks={{retryFetch: loadOrderItems}}
             />
         </div>
     </div>
