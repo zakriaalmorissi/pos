@@ -1,6 +1,6 @@
 import {Routes , Route, useNavigate} from 'react-router-dom';
 import { Home} from '../ui/home/home';
-import  SingleTable  from '../ui/main/table/singleTable';
+import  SingleTable  from '../restaurant/table/components/singleTable';
 import { BillsHome } from '../ui/main/tabkeOutBills/main';
 import {SingleBill} from '../ui/main/tabkeOutBills/singleBill'
 

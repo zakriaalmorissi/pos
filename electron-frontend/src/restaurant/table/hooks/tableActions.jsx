@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SOCKET_URL } from "../../../network/constants";
-import { TABLE_ACTIONS } from "./tableConsistents";
+import { TABLE_ACTIONS } from "../../../restaurant/table/hooks/tableConsistents";
 
 export function useTableWebSocket() {
   const [searchParams] = useSearchParams();
