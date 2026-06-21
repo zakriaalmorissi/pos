@@ -35,6 +35,7 @@ export const cleanOrderItem = (orderItem) => {
           quantity: Number(orderItem.quantity ?? 0),
           status: orderItem.status,
           note: orderItem.note,
+          delivered: orderItem.delivered,
           orderItemedAt: orderItemTime,
           updatedAt: updateTime,
       }   

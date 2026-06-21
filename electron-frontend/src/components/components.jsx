@@ -23,110 +23,34 @@ export function LoadingSpinner () {
     </div>
 }
 
-
-
-export function OrderItemOptions ({ 
-    onDelete, 
-    overridePrice,
-    overrideQuantity,
-    lineMark,
-    addCondiments,
-    navigateBack,
-    order,
-
-}) {
-
-   const [number, setNumber] = useState(order?.quantity);
-
-    const incrementQuantity = () => {
-        setNumber( prev => prev + 1)
-    }
-
-    const decrementQuantity = () => {
-        if (number <= 1) return;
-        setNumber(prev => prev -1);
-    }
-
-    const onSave = () => {
-        overrideQuantity({id: order?.id, quantity: number});
-    }
+export function PopUpPage({onBack, childern}) {
+    // overlay page for showing popup components
     return <div 
         className='pop-up-page'
-        onClick={navigateBack}
-        >
-        <div className='order-options-container' 
-            onClick={(e)=> {e.stopPropagation()}}
-        
-        >
-        <div className='order-options-header'>
-            <h3>{order?.name}</h3>
-        </div>
-        <div className='order-options'>
+        onClick={onBack}
+    >{childern}</div>
+}
+
+
+export function ManageQuantity({number, increment, decrement}) {
+    return <div className='manage-quantity-container'>
+        <label htmlFor="quantity">Override Quantity:</label>
+        <div className='quantity'>
             <button 
-                onClick={onDelete}
+                onClick={decrement}
+                disabled = {number <= 1}
             >
-                <Trash2Icon size={42} />
-                <p>Void line</p>
+                <MinusSquare/>
             </button>
-            
-            <button  
-                onClick={overridePrice}
-                >
-                <CircleDollarSignIcon size={43}/>
-                <p>Price override</p>     
-            </button>
-            <button onClick={lineMark}>
-                <MessageSquareTextIcon size={43}/>
-                <p>Line mark</p>
-            </button>
-            <button onClick={addCondiments}>
-                <SaladIcon size={40}/>
-                <p>Condiments</p>
-            </button>
-            <button>
-                <AlarmSmokeIcon size={42}/>
-                <p>Fire Later</p>
-            </button>
-            <button>
-                <Rocket/>
-                <p>Release Fire</p>
+                <p>{number}</p>
+            <button onClick={increment}>
+                <PlusSquare/>
             </button>
         </div>
-        <div className='manage-quantity-container'>
-            <label htmlFor="quantity">Override Quantity:</label>
-            <div className='quantity'>
-                <button 
-                    onClick={decrementQuantity}
-                    disabled = {number <= 1}
-                >
-                    <MinusSquare/>
-
-                </button>
-                 <p>{number}</p>
-                <button onClick={incrementQuantity}>
-                    <PlusSquare/>
-                </button>
-
-            </div>
-
-        </div>
-        <div className='order-options-bottom'>
-            <button onClick={navigateBack}>
-                Cancel
-            </button>
-            <button onClick={onSave}>
-                OK
-            </button>
-        </div>
-         
-
-        </div>
-       
-
+        <button onClick={()=> onSave(number)}>OK</button>
     </div>
 
 }
-
 
 export function OrderOptions ({
     createOrder, 
@@ -199,11 +123,9 @@ export function NumericKeyBoard({onSave, onCancel, title, value}) {
     }
 
 
-
     return <div 
         className='pop-up-page'
-        onClick={onCancel}
-        
+        onClick={onCancel}  
     >
         <div 
             className='keyboard-container'
@@ -218,8 +140,6 @@ export function NumericKeyBoard({onSave, onCancel, title, value}) {
                 </button>
                     <h3>{title}</h3>
                 </div>
-            
-        
             <div className='number-input-container'>
                 <input 
                     value={number}
@@ -370,7 +290,6 @@ export function CondimentsComponent({order,onBack, onSave}) {
             return newItems;
         })
         setDisplayDeleteButton(false);
-
     }
 
 
