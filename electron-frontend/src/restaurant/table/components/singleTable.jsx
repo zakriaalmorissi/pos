@@ -1,14 +1,14 @@
-import style from './../style/table.module.css';
+import style from '../style/table.module.css';
 import { Header } from "./Header.jsx";
-import { Bill } from "../../../components/bill/Bill.js";
 import { StepBackIcon} from "lucide-react";
-import { ProcessingIndicator} from "../../components/components.jsx";
+import Order from "../../order/components/Order.jsx"
+import { ProcessingIndicator } from '../../../components/indicators/messagesIndicators.jsx';
 import BillForm from "../../../components/bill/billForm.js";
 import BillCard from "../../../components/bill/BillCard.js";
 import {  useTableWebSocket } from "../../../ui/main/table/tableActions.jsx";
 import { TABLE_ACTIONS } from "../hooks/tableConsistents.js";
 import useTableHook from "../hooks/useTableHook.jsx";
-import Indicator from "../../../components/Indicator.jsx";
+import Indicator from "../../../components/indicators/Indicator.jsx";
 
 
 

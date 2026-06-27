@@ -2,7 +2,7 @@ import { useState, useMemo} from "react";
 import style from '../style/orderItem.module.css'
 import { WarningMessage } from "../../../setup/components.jsx";
 import { useSelector } from "react-redux";
-import Indicator from "../../../components/Indicator.jsx";
+import Indicator from "../../../components/indicators/Indicator.jsx";
 import OrderItemCard from "./OrderItemCard.jsx";
 import useOrderItemHook from '../hooks/useOrderItemHook.jsx'
 

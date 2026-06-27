@@ -1,25 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { data, useSearchParams } from "react-router-dom";
-import { launchIndicatorFailureModel, launchIndicatorModel } from "../../../components/models.";
 import { ACTIONS, PROCESSING_STATE } from "../../../components/constants";
-import { createBill, fetchBill, updateBill } from "../../../dataProvider/billProvider/billSilce";
+import { createOrder, fetchOrder, updateOrder } from "../../../dataProvider/OrderProvider/OrderSilce";
 import { changeOrdersStatus } from "../../../dataProvider/orderProvider/orderSlice";
+import { makeAPICrud } from "../../../utilities/utiliy";
 
 
 
 export default function useTableHook(){
     const [searchParams] = useSearchParams();
     const tableId = Number(searchParams.get("tableId"));
-    const floorId = Number(searchParams.get("floorId"));
-    const {floors} = useSelector( s => s.floors); // floors is a list by default;
+    const tablesGroupId = Number(searchParams.get("tablesGroupId"));
+    const {tableGroups} = useSelector( s => s.tableGroups); // floors is a list by default;
     // Get the table;
     const table = useMemo(()=> { // Note: of course, table can be null 
-        if (!tableId || !floorId) return null; // Event if the any of their value is zero, return null;
-        const floor = floors.find(flr => flr.id === floorId);
-        const table = floor?.tables.find(tble => tble.id === tableId);
-        return table;
-    }, [floorId, tableId, floors]);
+        if (!tableId || !tablesGroupId) return null; // Event if the any of their value is zero, return null;
+        const tablesGroup = tableGroups.find( tg => tg.id === tablesGroupId);
+        return tablesGroup?.tables.find(tble => tble.id === tableId) ?? null;
+       
+    }, [tableGroups, tableId, tablesGroupId]);
 
     const dispatch = useDispatch();
     ///  Declare states 
@@ -29,25 +29,28 @@ export default function useTableHook(){
         message: null,
     });
 
-    const [selectedBill, setSelectBill] = useState(null);
-    const [addBill, setAddBill] = useState(false);
-    // Derived state but must listen to user interactions
-    const viewDpn = table?.bills.length 
+    const [selectedOrder, setSelectOrder] = useState(null);
+    const [addOrder, setAddOrder] = useState(false);
+    // Derived state but it must listen to user interactions
+    const viewDpn = table?.orders.length;
     const view = useMemo(() => {
-        if (!table) return null;
-        const count = table.bills.length ?? 0;
-        if (addBill) return "createBill";
-        if (count === 0) return "createBill";
-        if (count === 1)  return "displayBill";
-        return selectedBill ? "displayBill": "selectBill";
+        if (!table) return null; //  guard
+        const count = table.orders.length ?? 0;
+        if (addOrder) return "createOrder";
+        if (count === 0) return "createOrder";
+        if (count === 1)  return "displayOrder";
+        return selectedOrder ? "displayOrder": "selectOrder";
 
-    }, [viewDpn, selectedBill, addBill]);
-    // Save a ref for fetching the bill abort it accordingly
-    const activeBillRequest = useRef(null);
+    }, [viewDpn, selectedOrder, addOrder]);
+    // Ref for a borting the order 
+    const activeOrderRequest = useRef(null);
  
-    
-const firstTableBill =  table?.bills[0];
-const billToLoad = view === "displayBill"? selectedBill?.id ?? firstTableBill?.id: null;
+    const firstTableOrder =  table?.orders[0];
+    // Get the order id 
+    const orderToLoad = 
+        view === "displayOrder"
+        ? selectedOrder?.id 
+            ?? firstTableOrder?.id: null;
 
 const resetModelProcessingState = () => {
     setProcessingTableModel({
@@ -57,121 +60,95 @@ const resetModelProcessingState = () => {
     })
 }
 
-// Auto load data if there is any selected bill or table has only one bill
-useEffect(() => {
-    if (!billToLoad) return;
-    // Load the bill 
-    getTableBill(billToLoad);
-    // Abort the request 
-    return () => activeBillRequest.current?.abort();
-}, [billToLoad]);
+// Auto load data if there is any selected Order or table has only one Order
+    useEffect(() => {
+        if (!orderToLoad) return;
+        // Load the Order 
+        getTableOrder(orderToLoad);
+        // Abort the request 
+        return () => activeOrderRequest.current?.abort();
+    }, [orderToLoad]);
 
 
-const createTableBill = async (bill) => {
-    const data = {...bill, table: table?.id};
-    const timer = launchIndicatorModel({
-        status: PROCESSING_STATE.LOADING,
-        action: ACTIONS.CREATING,
-        message: "Creating a new bill ..",
-        setModel: (values) => setProcessingTableModel(values)
-    });
-    const timerError = launchIndicatorFailureModel({
-        status: PROCESSING_STATE.ERROR,
-        action: ACTIONS.CREATING,
-        message: "Took so long to create the bill. Please check the network",
-        setModel: (values) => setProcessingTableModel(values),
-    });
-    try {        
-
-        const currentBill = await dispatch(createBill(data)).unwrap();
-        setSelectBill(currentBill);
-        resetModelProcessingState();
-    } catch (error) {
-        setProcessingTableModel({
+    const createTableOrder = async (Order) => {
+        const data = {...Order, table: table?.id};
+        const timer = launchIndicatorModel({
+            status: PROCESSING_STATE.LOADING,
+            action: ACTIONS.CREATING,
+            message: "Creating a new Order ..",
+            setModel: (values) => setProcessingTableModel(values)
+        });
+        const timerError = launchIndicatorFailureModel({
             status: PROCESSING_STATE.ERROR,
             action: ACTIONS.CREATING,
-            message: `Failed to create Bill. ${error?.hint ?? ""}`
+            message: "Took so long to create the Order. Please check the network",
+            setModel: (values) => setProcessingTableModel(values),
+        });
+        const thunk = dispatch(createOrder(data));
+        await makeAPICrud({
+            thunk: thunk,
+            status: PROCESSING_STATE.LOADING,
+            action: ACTIONS.CREATING,
+            message: "Creating an order",
+            time: 300,
+            responseData: (data) => setSelectOrder(data),
+            updateStateCallback: (values) => setProcessingTableModel(values),
         })
-    } finally {
-        clearTimeout(timer); 
-        clearTimeout(timerError);
-        setAddBill(false);
-    }
-}
-
-const getTableBill = async (billId) => {
-    if (activeBillRequest.current) {
-        activeBillRequest.current?.abort();
-    }
-    const timer = launchIndicatorModel({
-        status: PROCESSING_STATE.LOADING,
-        action: ACTIONS.GETTING,
-        message: "Loading Bill ..",
-        setModel: (values) => setProcessingTableModel(values)
-    });
-    const timerError = launchIndicatorFailureModel({
-        status: PROCESSING_STATE.ERROR,
-        action: ACTIONS.GETTING,
-        message: "Took so long to Load the bill. Please check the network",
-        setModel: (values) => setProcessingTableModel(values),
-    });
-
-    // Save the bill active fetch request
-    const requestThunk = dispatch(fetchBill(billId));
-    activeBillRequest.current = requestThunk;
-    try {
-        await requestThunk.unwrap();
-        // Reset the processing model
         resetModelProcessingState();
-    } catch (error) {
-        if (error.name === "AbortError") return; // This is not a real error;
-        setProcessingTableModel({
-            status: PROCESSING_STATE.ERROR,
+        setAddOrder(false);
+    }
+
+    const getTableOrder = async (orderId) => {
+        if (activeOrderRequest.current) {
+            activeOrderRequest.current?.abort();
+        }
+        // Save the Order active fetch request
+        const requestThunk = dispatch(fetchOrder(orderId));
+        activeOrderRequest.current = requestThunk;
+        await makeAPICrud({
+            thunk:requestThunk,
             action: ACTIONS.GETTING,
-            message: `Failed to load Bill. ${error?.hint ?? ""}`
+            status: PROCESSING_STATE.LOADING,
+            message: "Loading Order",
+            time: 300,
+            updateStateCallback: (values) => setProcessingTableModel(values)
         })
-        
-    } finally {
-        clearTimeout(timer);
-        clearTimeout(timerError);
-    }
-}
 
-
-const updateTableBill = async (bill) => {
-    try {
-        const newBill = await dispatch(updateBill({billId: bill?.id, data: bill})).unwrap();
-        console.log(newBill)
         resetModelProcessingState();
-    } catch (error) {
-        setProcessingTableModel({
-            status: PROCESSING_STATE.ERROR,
-            action: ACTIONS.UPDATING,
-            message: `Failed to update bill. ${error?.hint ?? ""}`,
-        })
     }
-}
 
-const selectTableBill = (bill) => setSelectBill(bill);
-// For adding more than one bill for the current table;
-const addNewTableBill = () => setAddBill(true);
+    const updateTableOrder = async (order) => {
+        const thunk = dispatch(updateOrder({orderId: order?.id, data: order}));
+        await makeAPICrud({
+            thunk: thunk,
+            status: PROCESSING_STATE.LOADING,
+            action: ACTIONS.GETTING,
+            message: "updating the order",
+            time: 500,
+            updateStateCallback: (values) => setProcessingTableModel(values),
+        })
+        resetModelProcessingState();
+    }
 
-const changeTableOrdersStatus = () => dispatch(changeOrdersStatus());
+    const selectTableOrder = (Order) => setSelectOrder(Order);
+    // For adding more than one Order for the current table;
+    const addNewTableOrder = () => setAddOrder(true);
+    const changeTableOrdersStatus = () => dispatch(changeOrdersStatus());
 
 
 
 return {
-        table: table,
+        table,
+        view,
         tableCrud: {
-            getTableBill, 
-            createTableBill,
-            selectTableBill,
-            updateTableBill, 
-            addNewTableBill,
+            getTableOrder, 
+            createTableOrder,
+            selectTableOrder,
+            updateTableOrder, 
+            addNewTableOrder,
         },
         changeTableOrdersStatus,
+        resetModelProcessingState,
         tableProcessing: processingTableModel,
-        view: view,
-        resetModelProcessingState: resetModelProcessingState
     }
 }

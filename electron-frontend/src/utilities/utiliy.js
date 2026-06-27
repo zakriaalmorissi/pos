@@ -1,5 +1,6 @@
 import { launchIndicatorFailureModel, launchIndicatorModel } from "../components/models."
 import { PROCESSING_STATE, ACTIONS } from "../components/constants"
+import { data } from "react-router-dom";
 
 export const makeAPICrud = async ({
     thunk,
@@ -7,6 +8,7 @@ export const makeAPICrud = async ({
     action, 
     message,
     time,  // when to show loading indicator 
+    responseData,
     updateStateCallback, 
 }) => {
     const currentThunk = thunk;
@@ -31,7 +33,8 @@ export const makeAPICrud = async ({
         })
     }, 6000);
     try {
-        await currentThunk().unwrap();
+       const res = await currentThunk.unwrap();
+       responseData?.(res);
     } catch (error) {
         if (error?.name === "AbortError") return; // deliberately  ignored 
         updateStateCallback({
@@ -44,8 +47,6 @@ export const makeAPICrud = async ({
         clearTimeout(timer);
         clearTimeout(errorTimer);
     }
-
-
 
 }
 

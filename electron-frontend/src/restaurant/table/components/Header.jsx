@@ -5,6 +5,8 @@ import { useDispatch, useSelector} from "react-redux";
 import { useState } from "react";
 
 export function Header ({tableName, overrideBillCustomer, changeOrderStatus}) {
+    // Manage the state of the order items (take away or dine in)
+    // Show the table name 
     const [dispalyNumericKeyboard, setDisplayNumericKeyboard] = useState(false);
     const {bill} = useSelector(s => s.bill);
     const {ordersStatus} = useSelector( s => s.order);

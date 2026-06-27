@@ -150,6 +150,6 @@ export function useTableWebSocket() {
       occupyTable,
       releaseTable,
     },
-    resetSocketModel: resetSocketModel
+    resetSocketModel
   };
 }

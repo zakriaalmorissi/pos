@@ -1,9 +1,10 @@
-import { useState ,useMemo} from "react";
+import { useState, useMemo} from "react";
 import style from './order.module.css';
 import { WarningMessage } from "../../../setup/components.jsx";
 import { useSelector } from "react-redux";
 import Indicator from "../Indicator.jsx";
 import OrderItemOptions from "../../../components/orderItemCom/ItemOptions.jsx";
+import { NumericKeyBoard } from "../../../components/components.jsx";
 import { managePopsUpsHook, useCardHook } from "../hooks/useCardHook.jsx";
 import { ITEM_OPTIONS_POPUP, NOTE_POPUP, NUMERIC_KEYBOARD_POPUP} from "../../../components/constants.js";
 
@@ -41,12 +42,6 @@ export default function OrderItemCard({orderItem}){
                     navigateBack={resetItemUIState}
                 />
             ),
-            NOTE_POPUP: (
-                <LineMarkComponent
-                    order = {order}
-                    onBack={hideActivePopUp}
-                    onSave={updateItem}
-                />),
             NUMERIC_KEYBOARD_POPUP: (
                 <NumericKeyBoard 
                     value={order?.price}
@@ -106,6 +101,5 @@ function ItemBody({orderItem, onPress}) {
 
 function ItemFooter({orderItem}) {
     return <div className="item-footer">
-
     </div>
 }

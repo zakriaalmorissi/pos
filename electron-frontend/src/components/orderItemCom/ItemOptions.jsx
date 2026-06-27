@@ -13,6 +13,7 @@ import {
 
 import { useCallback, useEffect, useState } from 'react'
 import { ManageQuantity, PopUpPage } from '../components';
+import "../style/style.css"
 
 export default function OrderItemOptions ({ 
     onDelete, 
@@ -21,10 +22,13 @@ export default function OrderItemOptions ({
     addNote,
     navigateBack,
     orderItem,
-
 }) {
+    
 
-
+    const onOverrideQuantity = (value) => {
+        if (value === orderItem.quantity) return; 
+        overrideQuantity({id: orderItem.id, quantity: value});
+    }
     return <PopUpPage onBack={navigateBack}>
         <div 
             className='order-item-options-container'
@@ -37,7 +41,11 @@ export default function OrderItemOptions ({
                 overridePrice={overridePrice}
                 addNote={addNote}
             />
-            <OptionsFooter />
+            <OptionsFooter 
+                orderItem={orderItem}
+                onBack={navigateBack}
+                onSave={onOverrideQuantity}
+            />
         </div>
     </PopUpPage>
 }
@@ -49,18 +57,25 @@ function OptionsHeader({orderItem}) {
     </div>
 }
 
-function OptionsBody({orderItem, callbacks}) {
-
+function OptionsBody({
+    orderItem,
+    onDelete, 
+    overridePrice,
+    addNote,
+    fireLater, 
+    release
+}) {
+  
     return <div className='options-body-container'>
             <button 
-                onClick={onDelete}
+                onClick={() => onDelete({id: orderItem.id})}
             >
                 <Trash2Icon size={42} />
                 <p>Void line</p>
             </button>
-            <button  
+            <button 
                 onClick={overridePrice}
-                >
+            >
                 <CircleDollarSignIcon size={43}/>
                 <p>Price override</p>     
             </button>
@@ -92,13 +107,13 @@ function OptionsFooter({orderItem, onBack, onSave}) {
         if (number <= 1) return;
         setNumber(prev => prev -1);
     }
-    return <div>
+    return <div className='options-footer'>
         <ManageQuantity 
             number={orderItem?.quantity}
             decrement={decrementQuantity}
             increment={incrementQuantity}
             />
-        <div className='order-options-bottom'>
+        <div className='options-footer-bottom'>
             <button onClick={onBack}>
                 Cancel
             </button>

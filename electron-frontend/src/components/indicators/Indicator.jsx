@@ -1,5 +1,5 @@
-import { ProcessingIndicator, TimeoutErrorMessageIndicator } from "./components";
-import { PROCESSING_STATE, ACTIONS } from "./constants";
+import { ProcessingIndicator, TimeoutErrorMessageIndicator } from "../components";
+import { PROCESSING_STATE, ACTIONS } from "../constants";
 
 
 

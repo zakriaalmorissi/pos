@@ -1,4 +1,4 @@
-import '../style/loading.css'
+import "./style/style.css"
 import { 
     Trash2Icon, CircleDollarSignIcon,
     MessageSquareTextIcon, SaladIcon, AlarmSmokeIcon, 
@@ -11,7 +11,6 @@ import {
     PlusSquare,
     MinusSquare,
 } from 'lucide-react'
-import '../style/billComponent.css'
 import { useCallback, useEffect, useState } from 'react'
 import { url } from '../../../network/constants'
 
@@ -33,6 +32,7 @@ export function PopUpPage({onBack, childern}) {
 
 
 export function ManageQuantity({number, increment, decrement}) {
+    // Manage the quantity of the items 
     return <div className='manage-quantity-container'>
         <label htmlFor="quantity">Override Quantity:</label>
         <div className='quantity'>
@@ -47,7 +47,6 @@ export function ManageQuantity({number, increment, decrement}) {
                 <PlusSquare/>
             </button>
         </div>
-        <button onClick={()=> onSave(number)}>OK</button>
     </div>
 
 }
@@ -59,10 +58,8 @@ export function OrderOptions ({
     orderDiscount
     
 }) {
-
     ///  Menu options component to manipulate the entire list of orders,
-    //  and manipulate the bill
-
+    ///  and manipulate the bill
     return (
         <div className='pop-up-page'>
             <div className='bill-options-container'>
